@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase SQL-like Interface</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 700px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            resize: none;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e7f7e7;
+            color: #2d7a2d;
+            border: 1px solid #c3e6c3;
+            border-radius: 4px;
+            display: none;
+        }
+        .error {
+            background-color: #fcebea;
+            color: #a94442;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Firebase SQL-like Interface</h1>
+        <textarea id="sqlInput" placeholder="Enter SQL-like commands, e.g.:
+        CREATE TABLE Users (userId, name, email, password);
+        SELECT * FROM Users;
+        INSERT INTO Users (userId, name, email) VALUES ('1', 'John Doe', 'john@example.com');
+        UPDATE Users SET name = 'Jane Doe' WHERE userId = '1';
+        DELETE FROM Users WHERE userId = '1';"></textarea>
+        <button id="executeButton">Execute SQL</button>
+        <div id="output" class="output"></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
+            authDomain: "fyptravelapp-2d05e.firebaseapp.com",
+            projectId: "fyptravelapp-2d05e",
+            storageBucket: "fyptravelapp-2d05e.appspot.com",
+            messagingSenderId: "467200386716",
+            appId: "1:467200386716:web:bc6c908d87096c7f572f59",
+            measurementId: "G-0B2E960EH7"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const firestore = firebase.firestore();
+
+        function parseSql(sql) {
+            const command = sql.split(" ")[0].toUpperCase();
+            return command;
+        }
+
+        async function createTableFirestore(tableName, fields) {
+            const schema = fields.reduce((acc, field) => {
+                const [fieldName] = field.split(" ");
+                acc[fieldName] = null;
+                return acc;
+            }, {});
+            await firestore.collection(tableName).doc("schema").set(schema);
+            return `${tableName} created successfully.`;
+        }
+
+        async function insertIntoFirestore(tableName, values) {
+            const docRef = firestore.collection(tableName).doc();
+            await docRef.set(values);
+            return "Record inserted successfully.";
+        }
+
+        async function selectFromFirestore(tableName) {
+            const snapshot = await firestore.collection(tableName).get();
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return JSON.stringify(data, null, 2);
+        }
+
+        async function updateFirestore(tableName, whereField, whereValue, updates) {
+            const snapshot = await firestore.collection(tableName).where(whereField, "==", whereValue).get();
+            if (snapshot.empty) return "No matching record found.";
+            const updatesPromises = [];
+            snapshot.forEach(doc => {
+                updatesPromises.push(firestore.collection(tableName).doc(doc.id).update(updates));
+            });
+            await Promise.all(updatesPromises);
+            return "Record updated successfully.";
+        }
+
+        async function deleteFromFirestore(tableName, whereField, whereValue) {
+            const snapshot = await firestore.collection(tableName).where(whereField, "==", whereValue).get();
+            if (snapshot.empty) return "No matching record found.";
+            const deletePromises = [];
+            snapshot.forEach(doc => {
+                deletePromises.push(firestore.collection(tableName).doc(doc.id).delete());
+            });
+            await Promise.all(deletePromises);
+            return "Record deleted successfully.";
+        }
+
+        document.getElementById("executeButton").addEventListener("click", async () => {
+            const sqlInput = document.getElementById("sqlInput").value.trim();
+            const output = document.getElementById("output");
+
+            if (!sqlInput) {
+                output.style.display = "block";
+                output.textContent = "Please enter an SQL command.";
+                output.classList.add("error");
+                return;
+            }
+
+            try {
+                const command = parseSql(sqlInput);
+                let result;
+
+                if (command === "CREATE") {
+                    const match = sqlInput.match(/CREATE TABLE (\w+) \((.+)\)/);
+                    if (!match) throw new Error("Invalid CREATE command format.");
+                    const tableName = match[1];
+                    const fields = match[2].split(",").map(field => field.trim());
+                    result = await createTableFirestore(tableName, fields);
+                } else if (command === "INSERT") {
+                    const match = sqlInput.match(/INSERT INTO (\w+) \((.+)\) VALUES \((.+)\)/);
+                    if (!match) throw new Error("Invalid INSERT command format.");
+                    const tableName = match[1];
+                    const fields = match[2].split(",").map(field => field.trim());
+                    const values = match[3].split(",").map(value => value.trim().replace(/['"]/g, ""));
+                    const doc = fields.reduce((acc, field, index) => {
+                        acc[field] = values[index];
+                        return acc;
+                    }, {});
+                    result = await insertIntoFirestore(tableName, doc);
+                } else if (command === "SELECT") {
+                    const match = sqlInput.match(/SELECT \* FROM (\w+)/);
+                    if (!match) throw new Error("Invalid SELECT command format.");
+                    const tableName = match[1];
+                    result = await selectFromFirestore(tableName);
+                } else if (command === "UPDATE") {
+                    const match = sqlInput.match(/UPDATE (\w+) SET (.+) WHERE (\w+) = ['"](.+)['"]/);
+                    if (!match) throw new Error("Invalid UPDATE command format.");
+                    const tableName = match[1];
+                    const updates = match[2].split(",").reduce((acc, update) => {
+                        const [field, value] = update.split("=").map(item => item.trim().replace(/['"]/g, ""));
+                        acc[field] = value;
+                        return acc;
+                    }, {});
+                    const whereField = match[3];
+                    const whereValue = match[4];
+                    result = await updateFirestore(tableName, whereField, whereValue, updates);
+                } else if (command === "DELETE") {
+                    const match = sqlInput.match(/DELETE FROM (\w+) WHERE (\w+) = ['"](.+)['"]/);
+                    if (!match) throw new Error("Invalid DELETE command format.");
+                    const tableName = match[1];
+                    const whereField = match[2];
+                    const whereValue = match[3];
+                    result = await deleteFromFirestore(tableName, whereField, whereValue);
+                } else {
+                    result = "Unsupported SQL command.";
+                }
+
+                output.style.display = "block";
+                output.textContent = result;
+                output.classList.remove("error");
+            } catch (error) {
+                output.style.display = "block";
+                output.textContent = `Error: ${error.message}`;
+                output.classList.add("error");
+            }
+        });
+    </script>
+</body>
+</html>

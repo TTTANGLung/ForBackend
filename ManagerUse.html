@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Page Interface</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+    }
+
+    header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 10px 0;
+    }
+
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: #007bff;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #ffffff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+
+    input, textarea, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    table th, table td {
+      border: 1px solid #ced4da;
+      padding: 10px;
+      text-align: left;
+    }
+
+    table th {
+      background-color: #f8f9fa;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Multi-Page Interface</h1>
+  </header>
+
+  <nav>
+    <a href="#" onclick="navigateTo('view-forum')">View & Modify Forum</a>
+    <a href="#" onclick="navigateTo('generate-report')">Generate Report</a>
+    <a href="#" onclick="navigateTo('send-notification')">Send Notification</a>
+    <a href="#" onclick="navigateTo('manage-users')">Manage Users</a>
+  </nav>
+
+  <div id="app">
+    <div id="manage-users" class="container" style="display: none;">
+      <h1>Manage Users</h1>
+      <button id="add-user-button">Add User</button>
+      <table id="user-table">
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Phone Number</th>
+            <th>Birthday</th>
+            <th>Sex</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="user-list"></tbody>
+      </table>
+      <form id="add-user-form" style="display: none;">
+        <h2>Add User</h2>
+        <input type="text" id="user-name" placeholder="User Name" required />
+        <input type="email" id="user-email" placeholder="User Email" required />
+        <input type="text" id="user-address" placeholder="Address" required />
+        <input type="tel" id="user-phone" placeholder="Phone Number" required />
+        <input type="date" id="user-birthday" placeholder="Birthday" required />
+        <select id="user-sex" required>
+          <option value="">Select Sex</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+        <button type="submit">Add User</button>
+      </form>
+    </div>
+
+    <div id="view-forum" class="container" style="display: none;">
+      <h1>View & Modify Forum</h1>
+    </div>
+
+    <div id="generate-report" class="container" style="display: none;">
+      <h1>Generate Report</h1>
+    </div>
+
+    <div id="send-notification" class="container" style="display: none;">
+      <h1>Send Notification</h1>
+    </div>
+  </div>
+
+  <script>
+    function navigateTo(pageId) {
+      document.querySelectorAll('.container').forEach(page => page.style.display = 'none');
+      document.getElementById(pageId).style.display = 'block';
+    }
+
+    navigateTo('manage-users');
+
+    const users = [
+      {
+        userID: 1,
+        name: 'Frankie',
+        email: 'tan1212asd@gmail.com',
+        address: 'HongKong FenLing',
+        phone: '52234300',
+        birthday: '2001-04-09',
+        sex: 'male'
+      },
+      {
+        userID: 2,
+        name: 'Parry',
+        email: 'parry@gmail.com',
+        address: 'Huotan',
+        phone: '12345678',
+        birthday: '1995-06-15',
+        sex: 'male'
+      },
+      {
+        userID: 3,
+        name: 'Lam',
+        email: 'lam@gmail.com',
+        address: 'Shatian',
+        phone: '87654321',
+        birthday: '1990-12-01',
+        sex: 'male'
+      }
+    ];
+
+    function displayUsers() {
+      const userList = document.getElementById('user-list');
+      userList.innerHTML = '';
+
+      users.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${user.userID}</td>
+          <td>${user.name}</td>
+          <td>${user.email}</td>
+          <td>${user.address}</td>
+          <td>${user.phone}</td>
+          <td>${user.birthday}</td>
+          <td>${user.sex}</td>
+          <td>
+            <button onclick="editUser(${user.userID})">Edit</button>
+            <button onclick="deleteUser(${user.userID})">Delete</button>
+          </td>
+        `;
+        userList.appendChild(row);
+      });
+    }
+
+    document.getElementById('add-user-button').addEventListener('click', () => {
+      document.getElementById('add-user-form').style.display = 'block';
+    });
+
+    document.getElementById('add-user-form').onsubmit = function(event) {
+      event.preventDefault();
+      const name = document.getElementById('user-name').value;
+      const email = document.getElementById('user-email').value;
+      const address = document.getElementById('user-address').value;
+      const phone = document.getElementById('user-phone').value;
+      const birthday = document.getElementById('user-birthday').value;
+      const sex = document.getElementById('user-sex').value;
+      const newUserID = users.length + 1;
+      users.push({ userID: newUserID, name, email, address, phone, birthday, sex });
+      document.getElementById('add-user-form').reset();
+      displayUsers();
+    };
+
+    function editUser(userID) {
+      const user = users.find(u => u.userID === userID);
+      if (user) {
+        document.getElementById('user-name').value = user.name;
+        document.getElementById('user-email').value = user.email;
+        document.getElementById('user-address').value = user.address;
+        document.getElementById('user-phone').value = user.phone;
+        document.getElementById('user-birthday').value = user.birthday;
+        document.getElementById('user-sex').value = user.sex;
+        document.getElementById('add-user-form').style.display = 'block';
+        deleteUser(userID);
+      }
+    }
+
+    function deleteUser(userID) {
+      const index = users.findIndex(u => u.userID === userID);
+      if (index > -1) {
+        users.splice(index, 1);
+        displayUsers();
+      }
+    }
+
+    displayUsers();
+  </script>
+</body>
+</html>

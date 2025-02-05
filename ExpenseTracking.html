@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracking Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+    }
+
+    header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #ffffff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Travel Expense Tracker</h1>
+  </header>
+
+  <div class="container">
+    <form id="expense-form">
+      <label for="expense-type">Expense Type</label>
+      <select id="expense-type" required>
+        <option value="">Select Expense Type</option>
+        <option value="food">Food</option>
+        <option value="accommodation">Accommodation</option>
+        <option value="transportation">Transportation</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="expense-title">Expense Title</label>
+      <input type="text" id="expense-title" placeholder="Enter Expense Title" required />
+
+      <label for="expense-amount">Amount</label>
+      <input type="number" id="expense-amount" placeholder="Enter Amount" required />
+
+      <label for="currency">Currency</label>
+      <select id="currency" required>
+        <option value="">Select Currency</option>
+        <option value="usd">US Dollar (USD)</option>
+        <option value="eur">Euro (EUR)</option>
+        <option value="hkd">Hong Kong Dollar (HKD)</option>
+        <option value="cny">Chinese Yuan (CNY)</option>
+      </select>
+
+      <label for="receipt-image">Upload Receipt Image</label>
+      <input type="file" id="receipt-image" accept="image/*" required />
+
+      <button type="submit">Save</button>
+      <button type="button" onclick="cancel()">Cancel</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('expense-form').onsubmit = function(event) {
+      event.preventDefault();
+      alert('Expense has been saved!');
+      this.reset();
+    };
+
+    function cancel() {
+      if (confirm('Are you sure you want to cancel?')) {
+        document.getElementById('expense-form').reset();
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
+      authDomain: "fyptravelapp-2d05e.firebaseapp.com",
+      databaseURL: "https://fyptravelapp-2d05e-default-rtdb.firebaseio.com",
+      projectId: "fyptravelapp-2d05e",
+      storageBucket: "fyptravelapp-2d05e.appspot.com",
+      messagingSenderId: "467200386716",
+      appId: "1:467200386716:web:bc6c908d87096c7f572f59"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    function displayUsers() {
+      const userList = document.getElementById('user-list');
+      userList.innerHTML = '';
+
+      const usersRef = ref(database, 'Users');
+
+      onValue(usersRef, (snapshot) => {
+        const users = snapshot.val();
+        if (users) {
+          Object.keys(users).forEach(key => {
+            const user = users[key];
+            console.log("User:", user);
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${user.userID}</td>
+              <td><input type="text" value="${user.name}" data-id="${key}" data-field="name"></td>
+              <td><input type="email" value="${user.email}" data-id="${key}" data-field="email"></td>
+              <td><input type="text" value="${user.phone_number || user['phone number']}" data-id="${key}" data-field="phone_number"></td>
+              <td><input type="text" value="${user.address}" data-id="${key}" data-field="address"></td>
+              <td><input type="text" value="${user.birthday}" data-id="${key}" data-field="birthday"></td>
+              <td><input type="text" value="${user.sex}" data-id="${key}" data-field="sex"></td>
+              <td>
+                <button onclick="updateUser('${key}')">Update</button>
+              </td>
+            `;
+            userList.appendChild(row);
+          });
+        } else {
+          console.log("No users found.");
+          userList.innerHTML = "<tr><td colspan='8'>No users found</td></tr>";
+        }
+      });
+    }
+
+    function updateUser(userId) {
+      const inputs = document.querySelectorAll(`input[data-id="${userId}"]`);
+      const updates = {};
+
+      inputs.forEach(input => {
+        updates[input.dataset.field] = input.value;
+      });
+
+      update(ref(database, 'Users/' + userId), updates)
+        .then(() => {
+          alert('User updated successfully!');
+        })
+        .catch(error => {
+          console.error('Error updating user:', error);
+        });
+    }
+
+    displayUsers();
+  </script>
+</head>
+<body>
+  <h1>User Management</h1>
+  <table id="user-table">
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone Number</th>
+        <th>Address</th>
+        <th>Birthday</th>
+        <th>Sex</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="user-list"></tbody>
+  </table>
+</body>
+</html>

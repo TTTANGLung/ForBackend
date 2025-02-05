@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+    }
+
+    header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #ffffff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    table th, table td {
+      border: 1px solid #ced4da;
+      padding: 10px;
+      text-align: left;
+    }
+
+    table th {
+      background-color: #f8f9fa;
+    }
+
+    .total {
+      font-weight: bold;
+      font-size: 1.2rem;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Expense Report</h1>
+  </header>
+
+  <div class="container">
+    <table id="expense-table">
+      <thead>
+        <tr>
+          <th>Expense Title</th>
+          <th>Category</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody id="expense-list">
+        <!-- Expense items will be dynamically inserted here -->
+      </tbody>
+    </table>
+
+    <div class="total">
+      Total: $<span id="total-amount">0.00</span>
+    </div>
+  </div>
+
+  <script>
+    // Sample data for demonstration
+    const expenses = [
+      { title: 'Lunch', category: 'Food', amount: 15.50 },
+      { title: 'Hotel', category: 'Accommodation', amount: 120.00 },
+      { title: 'Bus Ticket', category: 'Transportation', amount: 2.50 },
+      { title: 'Dinner', category: 'Food', amount: 25.00 }
+    ];
+
+    function displayExpenses() {
+      const expenseList = document.getElementById('expense-list');
+      const totalAmount = document.getElementById('total-amount');
+
+      expenseList.innerHTML = ''; // Clear previous entries
+      let total = 0;
+
+      expenses.forEach(expense => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${expense.title}</td>
+          <td>${expense.category}</td>
+          <td>$${expense.amount.toFixed(2)}</td>
+        `;
+        expenseList.appendChild(row);
+        total += expense.amount;
+      });
+
+      totalAmount.textContent = total.toFixed(2);
+    }
+
+    // Initial display of expenses
+    displayExpenses();
+  </script>
+</body>
+</html>
