@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forum</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
+      authDomain: "fyptravelapp-2d05e.firebaseapp.com",
+      databaseURL: "https://fyptravelapp-2d05e-default-rtdb.firebaseio.com",
+      projectId: "fyptravelapp-2d05e",
+      storageBucket: "fyptravelapp-2d05e.appspot.com",
+      messagingSenderId: "467200386716",
+      appId: "1:467200386716:web:bc6c908d87096c7f572f59"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadPosts() {
+      const postsRef = collection(db, 'Post');
+      const querySnapshot = await getDocs(postsRef);
+      const tableBody = document.getElementById('posts-table-body');
+
+      querySnapshot.forEach((doc) => {
+        const post = doc.data();
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${post.userId || 'N/A'}</td>
+          <td>${post.topic || 'N/A'}</td>
+          <td>${post.content || 'N/A'}</td>
+          <td><a href="viewPost.html?postId=${doc.id}">View</a></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    loadPosts();
+  </script>
+</head>
+<body>
+  <h1>Forum</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Topic</th>
+        <th>Content</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="posts-table-body">
+      <!-- Posts will be populated here -->
+    </tbody>
+  </table>
+</body>
+</html>

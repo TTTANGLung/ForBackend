@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,7 +35,9 @@
       margin-bottom: 20px;
     }
 
-    input, select, button {
+    input,
+    select,
+    button {
       width: 100%;
       padding: 10px;
       margin-bottom: 15px;
@@ -55,6 +58,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <h1>Travel Expense Tracker</h1>
@@ -95,10 +99,23 @@
   </div>
 
   <script>
-    document.getElementById('expense-form').onsubmit = function(event) {
+    document.getElementById('expense-form').onsubmit = function (event) {
       event.preventDefault();
+
+      const expenseTitle = document.getElementById("expense-title").value;
+      const amount = parseFloat(document.getElementById("expense-amount").value);
+      const expenseType = document.getElementById("expense-type").value;
+      const currency = document.getElementById("currency").value;
+
+      const currentExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
+
+      currentExpenses.push({ title: expenseTitle, amount: amount, category: expenseType, currency: currency });
+      localStorage.setItem("expenses", JSON.stringify(currentExpenses));
+
       alert('Expense has been saved!');
+
       this.reset();
+      location.href = 'ExpenseTotal.html';
     };
 
     function cancel() {
@@ -108,4 +125,5 @@
     }
   </script>
 </body>
+
 </html>

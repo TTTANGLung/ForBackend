@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -40,7 +41,8 @@
       margin-bottom: 20px;
     }
 
-    table th, table td {
+    table th,
+    table td {
       border: 1px solid #ced4da;
       padding: 10px;
       text-align: left;
@@ -57,6 +59,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <h1>Expense Report</h1>
@@ -72,9 +75,9 @@
         </tr>
       </thead>
       <tbody id="expense-list">
-        <!-- Expense items will be dynamically inserted here -->
       </tbody>
     </table>
+    <button onclick="location.href='ExpenseTracking.html'">Add tracking</button>
 
     <div class="total">
       Total: $<span id="total-amount">0.00</span>
@@ -82,7 +85,8 @@
   </div>
 
   <script>
-    // Sample data for demonstration
+
+
     const expenses = [
       { title: 'Lunch', category: 'Food', amount: 15.50 },
       { title: 'Hotel', category: 'Accommodation', amount: 120.00 },
@@ -94,7 +98,7 @@
       const expenseList = document.getElementById('expense-list');
       const totalAmount = document.getElementById('total-amount');
 
-      expenseList.innerHTML = ''; // Clear previous entries
+      expenseList.innerHTML = '';
       let total = 0;
 
       expenses.forEach(expense => {
@@ -110,9 +114,25 @@
 
       totalAmount.textContent = total.toFixed(2);
     }
+    window.onload = function() {
+    const currentExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
+    let total = 0;
 
-    // Initial display of expenses
+    currentExpenses.forEach(expense => {
+        total += expense.amount;
+        const row = `<tr>
+                        <td>${expense.title}</td>
+                        <td>${expense.category}</td>
+                        <td>${expense.amount}</td>
+                    </tr>`;
+        document.querySelector("table").innerHTML += row;
+    });
+
+    document.getElementById("totalAmount").innerText = total.toFixed(2);
+};
+
     displayExpenses();
   </script>
 </body>
+
 </html>

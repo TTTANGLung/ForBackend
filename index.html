@@ -1,97 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Management</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js";
-    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js";
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script defer src="/__/firebase/11.2.0/firebase-app-compat.js"></script>
+  <script defer src="/__/firebase/11.2.0/firebase-auth-compat.js"></script>
+  <script defer src="/__/firebase/11.2.0/firebase-database-compat.js"></script>
+  <script defer src="/__/firebase/11.2.0/firebase-firestore-compat.js"></script>
+  <script defer src="/__/firebase/11.2.0/firebase-functions-compat.js"></script>
+  <script defer src="/__/firebase/11.2.0/firebase-messaging-compat.js"></script>
+  <script defer src="/__/firebase/11.2.0/firebase-storage-compat.js"></script>
+  <script defer src="/__/firebase/11.2.0/firebase-analytics-compat.js"></script>
+  <script defer src="/__/firebase/11.2.0/firebase-remote-config-compat.js"></script>
+  <script defer src="/__/firebase/11.2.0/firebase-performance-compat.js"></script>
+  <script defer src="/__/firebase/init.js?useEmulator=true"></script>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
-      authDomain: "fyptravelapp-2d05e.firebaseapp.com",
-      databaseURL: "https://fyptravelapp-2d05e-default-rtdb.firebaseio.com",
-      projectId: "fyptravelapp-2d05e",
-      storageBucket: "fyptravelapp-2d05e.appspot.com",
-      messagingSenderId: "467200386716",
-      appId: "1:467200386716:web:bc6c908d87096c7f572f59"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-
-    function displayUsers() {
-      const userList = document.getElementById('user-list');
-      userList.innerHTML = '';
-
-      const usersRef = ref(database, 'Users');
-
-      onValue(usersRef, (snapshot) => {
-        const users = snapshot.val();
-        if (users) {
-          Object.keys(users).forEach(key => {
-            const user = users[key];
-            console.log("User:", user);
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${user.userID}</td>
-              <td><input type="text" value="${user.name}" data-id="${key}" data-field="name"></td>
-              <td><input type="email" value="${user.email}" data-id="${key}" data-field="email"></td>
-              <td><input type="text" value="${user.phone_number || user['phone number']}" data-id="${key}" data-field="phone_number"></td>
-              <td><input type="text" value="${user.address}" data-id="${key}" data-field="address"></td>
-              <td><input type="text" value="${user.birthday}" data-id="${key}" data-field="birthday"></td>
-              <td><input type="text" value="${user.sex}" data-id="${key}" data-field="sex"></td>
-              <td>
-                <button onclick="updateUser('${key}')">Update</button>
-              </td>
-            `;
-            userList.appendChild(row);
-          });
-        } else {
-          console.log("No users found.");
-          userList.innerHTML = "<tr><td colspan='8'>No users found</td></tr>";
-        }
-      });
+  <style media="screen">
+    body {
+      background: #ECEFF1;
+      color: rgba(0, 0, 0, 0.87);
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
     }
 
-    function updateUser(userId) {
-      const inputs = document.querySelectorAll(`input[data-id="${userId}"]`);
-      const updates = {};
-
-      inputs.forEach(input => {
-        updates[input.dataset.field] = input.value;
-      });
-
-      update(ref(database, 'Users/' + userId), updates)
-        .then(() => {
-          alert('User updated successfully!');
-        })
-        .catch(error => {
-          console.error('Error updating user:', error);
-        });
+    #message {
+      background: white;
+      max-width: 360px;
+      margin: 100px auto 16px;
+      padding: 32px 24px;
+      border-radius: 3px;
     }
 
-    displayUsers();
-  </script>
+    #message h2 {
+      color: #ffa100;
+      font-weight: bold;
+      font-size: 16px;
+      margin: 0 0 8px;
+    }
+
+    #message h1 {
+      font-size: 22px;
+      text-align: center;
+      font-weight: 300;
+      color: rgba(0, 0, 0, 0.6);
+      margin: 0 0 16px;
+    }
+
+    #message p {
+      line-height: 140%;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    #message a {
+      display: block;
+      text-align: center;
+      background: #039be5;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: white;
+      padding: 16px;
+      border-radius: 4px;
+    }
+
+    #message,
+    #message a {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    }
+
+    #load {
+      color: rgba(0, 0, 0, 0.4);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+
+      body,
+      #message {
+        margin-top: 0;
+        background: white;
+        box-shadow: none;
+      }
+
+      body {
+        border-top: 16px solid #ffa100;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <h1>User Management</h1>
-  <table id="user-table">
-    <thead>
-      <tr>
-        <th>User ID</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Phone Number</th>
-        <th>Address</th>
-        <th>Birthday</th>
-        <th>Sex</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="user-list"></tbody>
-  </table>
+  <div id="message">
+    <h1>Manager page</h1>
+    <a href="./createTable.html">createTablePage</a>
+    <a href="./forum.html">forum demo</a>
+    <a href="./databaseList.html">database list</a>
+    <a href="./sqlTool.html">SQL tools</a>
+    <a href="./testAPI.html">ADD Location</a>
+    <a href="./ExpenseTotal.html">Expense Total</a>
+  </div>
+  <p id="load">Firebase SDK Loading&hellip;</p>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const loadEl = document.querySelector('#load');
+
+        const cookies = document.cookie.split(';');
+        const userLoggedIn = cookies.some(cookie => cookie.trim().startsWith('userLoggedIn='));
+
+        if (!userLoggedIn) {
+            window.location.href = "Login.html";
+        } else {
+            loadEl.textContent = 'Welcome back!';
+        }
+
+        try {
+            let app = firebase.app();
+            let features = [
+                'auth', 
+                'database', 
+                'firestore',
+                'functions',
+                'messaging', 
+                'storage', 
+                'analytics', 
+                'remoteConfig',
+                'performance',
+            ].filter(feature => typeof app[feature] === 'function');
+            loadEl.textContent += ` Firebase SDK loaded with ${features.join(', ')}.`;
+        } catch (e) {
+            console.error(e);
+            loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+        }
+    });
+</script>
 </body>
+
 </html>

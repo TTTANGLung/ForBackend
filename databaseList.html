@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Table Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 200px;
+            padding: 20px;
+            border-right: 1px solid #ccc;
+            background-color: #fff;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .table-name {
+            cursor: pointer;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f2f2f2;
+            transition: background-color 0.3s;
+        }
+
+        .table-name:hover {
+            background-color: #e0e0e0;
+        }
+
+        .content {
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        .no-data {
+            margin-top: 20px;
+            color: #a94442;
+        }
+
+        .button-container {
+            margin-bottom: 20px;
+        }
+
+        button {
+            margin-right: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .selected {
+            background-color: #d1ecf1; /* 选中的颜色 */
+        }
+
+        .data-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .data-list li {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f2f2f2;
+            cursor: pointer;
+        }
+
+        .data-list li:hover {
+            background-color: #e0e0e0;
+        }
+
+        .editable {
+            margin-top: 20px;
+        }
+
+        .editable div {
+            margin-bottom: 10px;
+        }
+
+        .editable input {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: calc(100% - 10px); /* Adjust width */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2>Tables</h2>
+        <div id="tablesList"></div>
+    </div>
+    <div class="content">
+        <h2 id="tableTitle">Select a table to view data</h2>
+        <div class="button-container">
+            <button id="deleteButton" style="display:none;">Delete Selected</button>
+            <button id="editButton" style="display:none;">Edit Selected</button>
+        </div>
+        <ul id="tableData" class="data-list">No data to display.</ul>
+
+        <div id="editContainer" class="editable" style="display:none;"></div>
+        <button id="saveButton" style="display:none;">Save Changes</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
+            authDomain: "fyptravelapp-2d05e.firebaseapp.com",
+            databaseURL: "https://fyptravelapp-2d05e-default-rtdb.firebaseio.com",
+            projectId: "fyptravelapp-2d05e",
+            storageBucket: "fyptravelapp-2d05e.firebasestorage.app",
+            messagingSenderId: "467200386716",
+            appId: "1:467200386716:web:6e16cad0410484b5572f59",
+            measurementId: "G-WMKLGV40MJ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentCollection = '';
+        let selectedDocId = '';
+
+        // 获取所有集合并显示在侧边栏
+        async function loadCollections() {
+            const collectionsList = await getDocs(collection(db, '/travelData')); // 替换为你的集合路径
+            const tablesListDiv = document.getElementById('tablesList');
+
+            collectionsList.forEach((doc) => {
+                const div = document.createElement('div');
+                div.className = 'table-name';
+                div.innerText = doc.id; // 显示集合名
+                div.onclick = () => loadCollectionData(doc.id);
+                tablesListDiv.appendChild(div);
+            });
+        }
+
+        async function loadCollectionData(collectionName) {
+            currentCollection = collectionName;
+            const tableDataDiv = document.getElementById('tableData');
+            const tableTitle = document.getElementById('tableTitle');
+            tableTitle.innerText = `Data from ${collectionName}`;
+            tableDataDiv.innerHTML = '';
+
+            const collectionRef = collection(db, collectionName);
+            const querySnapshot = await getDocs(collectionRef);
+
+            if (querySnapshot.empty) {
+                tableDataDiv.innerHTML = '<li class="no-data">No data to display.</li>';
+                return;
+            }
+
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                const rowId = doc.id; // 保存文档 ID
+
+                // 创建列表项
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<strong>Document ID:</strong> ${rowId}<br>`;
+                listItem.setAttribute('data-id', rowId); // 存储文档 ID 以便后续使用
+
+                // 添加字段及其值
+                Object.entries(data).forEach(([key, value]) => {
+                    listItem.innerHTML += `<strong>${key}:</strong> <span class="value">${value}</span><br>`;
+                });
+
+                // 点击行选择文档
+                listItem.onclick = () => {
+                    selectedDocId = rowId;
+                    document.querySelectorAll('.data-list li').forEach(li => li.classList.remove('selected'));
+                    listItem.classList.add('selected');
+                    document.getElementById('deleteButton').style.display = 'inline-block';
+                    document.getElementById('editButton').style.display = 'inline-block';
+
+                    // 填充编辑区域
+                    populateEditFields(data);
+                };
+
+                tableDataDiv.appendChild(listItem);
+            });
+        }
+
+        function populateEditFields(data) {
+            const editContainer = document.getElementById('editContainer');
+            editContainer.innerHTML = ''; // 清空之前的输入框
+            Object.entries(data).forEach(([key, value]) => {
+                const div = document.createElement('div');
+                div.innerHTML = `<strong>${key}:</strong>`;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = value; // 设置当前值
+                input.setAttribute('data-key', key); // 存储字段名
+                div.appendChild(input);
+                editContainer.appendChild(div);
+            });
+            editContainer.style.display = 'block'; // 显示编辑区域
+            document.getElementById('saveButton').style.display = 'inline-block'; // 显示保存按钮
+        }
+
+        // 删除选定的文档
+        document.getElementById('deleteButton').onclick = async function () {
+            if (selectedDocId) {
+                const docRef = doc(db, currentCollection, selectedDocId);
+                await deleteDoc(docRef);
+                alert('Document deleted!');
+                loadCollectionData(currentCollection); // 重新加载数据
+                document.getElementById('editContainer').style.display = 'none'; // 隐藏编辑区域
+                document.getElementById('saveButton').style.display = 'none';
+            }
+        };
+
+        // 保存编辑后的数据
+        document.getElementById('saveButton').onclick = async function () {
+            if (selectedDocId) {
+                const inputs = document.querySelectorAll('#editContainer input');
+                const updates = {};
+                inputs.forEach(input => {
+                    const key = input.getAttribute('data-key');
+                    updates[key] = input.value; // 获取输入框的值
+                });
+                const docRef = doc(db, currentCollection, selectedDocId);
+                await updateDoc(docRef, updates);
+                alert('Document updated!');
+                loadCollectionData(currentCollection); // 重新加载数据
+            }
+        };
+
+        loadCollections();
+    </script>
+</body>
+
+</html>

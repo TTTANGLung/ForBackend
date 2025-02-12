@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centered Map with Location Info</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 10px 0;
+        }
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+        }
+        #map {
+            height: 400px;
+            width: 600px;
+            margin-bottom: 20px;
+        }
+        #info {
+            padding: 20px;
+            width: 600px;
+        }
+        input {
+            display: block;
+            margin: 10px 0;
+            padding: 8px;
+            width: calc(100% - 16px);
+        }
+        button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Multi-Page Interface</h1>
+    </header>
+    <nav>
+        <a href="#">Get Location</a>
+        <a href="#">View & Modify Forum</a>
+        <a href="#">Generate Report</a>
+        <a href="#">Send Notification</a>
+    </nav>
+
+    <div id="map"></div>
+    <div id="info">
+        <h3>Location Information:</h3>
+        <input type="text" id="latitude" placeholder="Latitude" readonly>
+        <input type="text" id="longitude" placeholder="Longitude" readonly>
+        <input type="text" id="name" placeholder="Location Name" readonly>
+        <input type="text" id="description" placeholder="Description" readonly>
+        <button id="addLocationButton">Add Location</button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
+            authDomain: "fyptravelapp-2d05e.firebaseapp.com",
+            projectId: "fyptravelapp-2d05e",
+            storageBucket: "fyptravelapp-2d05e.appspot.com",
+            messagingSenderId: "467200386716",
+            appId: "1:467200386716:web:bc6c908d87096c7f572f59",
+            measurementId: "G-0B2E960EH7"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 22.275, lng: 114.143 },
+                zoom: 8,
+            });
+
+            map.addListener("click", (event) => {
+                const lat = event.latLng.lat();
+                const lng = event.latLng.lng();
+                const latLng = new google.maps.LatLng(lat, lng);
+
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ location: latLng }, (results, status) => {
+                    if (status === "OK") {
+                        if (results[0]) {
+                            document.getElementById("latitude").value = lat;
+                            document.getElementById("longitude").value = lng;
+                            document.getElementById("name").value = results[0].formatted_address;
+                            document.getElementById("description").value = "Click on the map to get more information.";
+                        } else {
+                            alert("No results found.");
+                        }
+                    } else {
+                        alert("Geocoder failed due to: " + status);
+                    }
+                });
+            });
+        }
+
+        document.getElementById('addLocationButton').onclick = async function () {
+            const latitude = document.getElementById("latitude").value;
+            const longitude = document.getElementById("longitude").value;
+            const name = document.getElementById("name").value;
+            const description = document.getElementById("description").value;
+
+            console.log("Latitude:", latitude);
+            console.log("Longitude:", longitude);
+            console.log("Name:", name);
+            console.log("Description:", description);
+
+            if (!latitude || !longitude || !name) {
+                alert("Please select a location on the map.");
+                return;
+            }
+
+            const locationsRef = db.collection('Location');
+            const snapshot = await locationsRef.get();
+            const locationId = snapshot.size + 1;
+
+            await locationsRef.doc(`location_${locationId}`).set({
+                latitude: latitude,
+                longitude: longitude,
+                name: name,
+                description: description || ""
+            });
+
+            alert("Location added successfully!");
+        };
+
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaN_TLc-9GGQFLiGEqjtMrerqztbFjzTE&callback=initMap"
+        async defer></script>
+</body>
+
+</html>
