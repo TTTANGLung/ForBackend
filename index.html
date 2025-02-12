@@ -4,19 +4,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script defer src="/__/firebase/11.2.0/firebase-app-compat.js"></script>
-  <script defer src="/__/firebase/11.2.0/firebase-auth-compat.js"></script>
-  <script defer src="/__/firebase/11.2.0/firebase-database-compat.js"></script>
-  <script defer src="/__/firebase/11.2.0/firebase-firestore-compat.js"></script>
-  <script defer src="/__/firebase/11.2.0/firebase-functions-compat.js"></script>
-  <script defer src="/__/firebase/11.2.0/firebase-messaging-compat.js"></script>
-  <script defer src="/__/firebase/11.2.0/firebase-storage-compat.js"></script>
-  <script defer src="/__/firebase/11.2.0/firebase-analytics-compat.js"></script>
-  <script defer src="/__/firebase/11.2.0/firebase-remote-config-compat.js"></script>
-  <script defer src="/__/firebase/11.2.0/firebase-performance-compat.js"></script>
-  <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-  <style media="screen">
+  <script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-auth-compat.js"></script>
+  <style>
     body {
       background: #ECEFF1;
       color: rgba(0, 0, 0, 0.87);
@@ -63,11 +53,11 @@
       color: white;
       padding: 16px;
       border-radius: 4px;
+      margin: 5px 0;
     }
 
-    #message,
-    #message a {
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    #loginForm {
+      display: none;
     }
 
     #load {
@@ -75,68 +65,75 @@
       text-align: center;
       font-size: 13px;
     }
-
-    @media (max-width: 600px) {
-
-      body,
-      #message {
-        margin-top: 0;
-        background: white;
-        box-shadow: none;
-      }
-
-      body {
-        border-top: 16px solid #ffa100;
-      }
-    }
   </style>
 </head>
 
 <body>
   <div id="message">
     <h1>Manager page</h1>
-    <a href="./createTable.html">createTablePage</a>
-    <a href="./forum.html">forum demo</a>
-    <a href="./databaseList.html">database list</a>
-    <a href="./sqlTool.html">SQL tools</a>
-    <a href="./testAPI.html">ADD Location</a>
-    <a href="./ExpenseTotal.html">Expense Total</a>
+    <div id="loginForm">
+      <h2>Login</h2>
+      <form onsubmit="login(event)">
+        <input type="email" id="email" placeholder="Manager email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+      </form>
+    </div>
+    <div id="buttons" style="display: none;">
+      <a href="./createTable.html">Create Table Page</a>
+      <a href="./forum.html">Forum Demo</a>
+      <a href="./databaseList.html">Database List</a>
+      <a href="./sqlTool.html">SQL Tools</a>
+      <a href="./testAPI.html">ADD Location</a>
+      <a href="./ExpenseTotal.html">Expense Total</a>
+    </div>
   </div>
   <p id="load">Firebase SDK Loading&hellip;</p>
 
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
+      authDomain: "fyptravelapp-2d05e.firebaseapp.com",
+      projectId: "fyptravelapp-2d05e",
+      storageBucket: "fyptravelapp-2d05e.appspot.com",
+      messagingSenderId: "467200386716",
+      appId: "1:467200386716:web:bc6c908d87096c7f572f59"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+
     document.addEventListener('DOMContentLoaded', function () {
-        const loadEl = document.querySelector('#load');
+      const loadEl = document.querySelector('#load');
+      const loginForm = document.querySelector('#loginForm');
+      const buttons = document.querySelector('#buttons');
 
-        const cookies = document.cookie.split(';');
-        const userLoggedIn = cookies.some(cookie => cookie.trim().startsWith('userLoggedIn='));
+      const cookies = document.cookie.split(';');
+      const userLoggedIn = cookies.some(cookie => cookie.trim().startsWith('userLoggedIn='));
 
-        if (!userLoggedIn) {
-            window.location.href = "Login.html";
-        } else {
-            loadEl.textContent = 'Welcome back!';
-        }
-
-        try {
-            let app = firebase.app();
-            let features = [
-                'auth', 
-                'database', 
-                'firestore',
-                'functions',
-                'messaging', 
-                'storage', 
-                'analytics', 
-                'remoteConfig',
-                'performance',
-            ].filter(feature => typeof app[feature] === 'function');
-            loadEl.textContent += ` Firebase SDK loaded with ${features.join(', ')}.`;
-        } catch (e) {
-            console.error(e);
-            loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
-        }
+      if (!userLoggedIn) {
+        loginForm.style.display = 'block';
+      } else {
+        buttons.style.display = 'block';
+        loadEl.textContent = 'Welcome back!';
+      }
     });
-</script>
+
+    function login(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          document.cookie = "userLoggedIn=true; path=/; max-age=" + 60 * 60 * 24;
+          window.location.reload();
+        })
+        .catch((error) => {
+          alert('Login failed: ' + error.message);
+          console.error('Error', error);
+        });
+    }
+  </script>
 </body>
 
 </html>
