@@ -90,9 +90,6 @@
         <option value="cny">Chinese Yuan (CNY)</option>
       </select>
 
-      <label for="receipt-image">Upload Receipt Image</label>
-      <input type="file" id="receipt-image" accept="image/*" required />
-
       <button type="submit">Save</button>
       <button type="button" onclick="cancel()">Cancel</button>
     </form>
@@ -103,12 +100,9 @@
       event.preventDefault();
 
       const expenseTitle = document.getElementById("expense-title").value;
-      const amount = parseFloat(document.getElementById("expense-amount").value);
+      const amount = "$"+parseFloat(document.getElementById("expense-amount").value);
       const expenseType = document.getElementById("expense-type").value;
       const currency = document.getElementById("currency").value;
-
-      const currentExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
-
       currentExpenses.push({ title: expenseTitle, amount: amount, category: expenseType, currency: currency });
       localStorage.setItem("expenses", JSON.stringify(currentExpenses));
 

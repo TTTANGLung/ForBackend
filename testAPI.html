@@ -67,15 +67,6 @@
 </head>
 
 <body>
-    <header>
-        <h1>Multi-Page Interface</h1>
-    </header>
-    <nav>
-        <a href="#">Get Location</a>
-        <a href="#">View & Modify Forum</a>
-        <a href="#">Generate Report</a>
-        <a href="#">Send Notification</a>
-    </nav>
 
     <div id="map"></div>
     <div id="info">
@@ -83,7 +74,7 @@
         <input type="text" id="latitude" placeholder="Latitude" readonly>
         <input type="text" id="longitude" placeholder="Longitude" readonly>
         <input type="text" id="name" placeholder="Location Name" readonly>
-        <input type="text" id="description" placeholder="Description" readonly>
+        <input type="text" id="description" placeholder="You can enter content to location">
         <button id="addLocationButton">Add Location</button>
     </div>
 
@@ -120,7 +111,7 @@
                             document.getElementById("latitude").value = lat;
                             document.getElementById("longitude").value = lng;
                             document.getElementById("name").value = results[0].formatted_address;
-                            document.getElementById("description").value = "Click on the map to get more information.";
+                            document.getElementById("description").value = "You can enter content to location";
                         } else {
                             alert("No results found.");
                         }
