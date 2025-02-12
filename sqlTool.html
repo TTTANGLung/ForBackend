@@ -93,13 +93,14 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
-            authDomain: "fyptravelapp-2d05e.firebaseapp.com",
-            projectId: "fyptravelapp-2d05e",
-            storageBucket: "fyptravelapp-2d05e.appspot.com",
-            messagingSenderId: "467200386716",
-            appId: "1:467200386716:web:bc6c908d87096c7f572f59",
-            measurementId: "G-0B2E960EH7"
+            apiKey: "AIzaSyBXFDGnPsoodXXfHcWhDWgpDRHm9pmupAo",
+            authDomain: "fypfirebase-c8e60.firebaseapp.com",
+            databaseURL: "https://fypfirebase-c8e60-default-rtdb.firebaseio.com",
+            projectId: "fypfirebase-c8e60",
+            storageBucket: "fypfirebase-c8e60.firebasestorage.app",
+            messagingSenderId: "568745497962",
+            appId: "1:568745497962:web:069b367303ccded5484113",
+            measurementId: "G-KMJ26VBPV5"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -110,82 +111,62 @@
             return command;
         }
 
-        async function createTableFirestore(tableName, fields) {
-            const schema = {};
-            const idField = fields[0].trim(); // 获取第一个字段作为文档 ID
-
-            // 初始化每个字段为 null
-            fields.forEach(field => {
-                const fieldName = field.trim();
-                schema[fieldName] = null; // 字段初始化为 null
-            });
-
-            // 创建新的集合，集合名字为表名
-            await firestore.collection(tableName).doc(idField).set(schema);
-            return `${tableName} created successfully.`;
+        async function createTableFirestore(tableName) {
+            // 创建集合并添加一个默认文档
+            const defaultData = { message: "This is a template document." };
+            const docRef = await firestore.collection(tableName).add(defaultData);
+            return `${tableName} created successfully with document ID: ${docRef.id}`;
         }
 
         async function insertIntoFirestore(tableName, values) {
             const collectionRef = firestore.collection(tableName);
             const snapshot = await collectionRef.get();
 
-            // 获取所有现有文档 ID
-            const existingIds = snapshot.docs.map(doc => parseInt(doc.id, 10));
-            let docId = 1;
+            const existingIds = snapshot.docs.map(doc => doc.id);
+            const orderNumbers = existingIds
+                .map(id => {
+                    const parts = id.split('_');
+                    return parts.length > 1 ? parseInt(parts[1]) : 0;
+                });
 
-            // 查找第一个缺失的 ID
-            while (existingIds.includes(docId)) {
-                docId++;
-            }
+            // 计算下一个次序
+            const nextOrder = orderNumbers.length > 0 ? Math.max(...orderNumbers) + 1 : 1;
 
-            const data = { id: docId }; // 初始化文档 ID
+            // 创建新文档 ID
+            const newDocId = `${tableName}_${nextOrder}`;
+            const data = { id: newDocId }; // 初始化文档 ID
+
             Object.keys(values).forEach(field => {
-                if (field !== 'id') { // 排除 ID 字段
-                    data[field] = values[field].trim().replace(/['"]/g, "");
-                }
+                data[field] = values[field].trim().replace(/['"]/g, "");
             });
 
-            await collectionRef.doc(docId.toString()).set(data);
+            await collectionRef.doc(newDocId).set(data);
             return "Record inserted successfully.";
         }
 
         async function selectFromFirestore(tableName) {
-            const snapshot = await firestore.collection("travelData").doc(tableName).get();
-            const data = snapshot.data();
+            const snapshot = await firestore.collection(tableName).get();
+            const data = snapshot.docs.map(doc => doc.data());
             return JSON.stringify(data, null, 2);
         }
 
-        async function updateFirestore(tableName, whereField, whereValue, updates) {
-            const docRef = firestore.collection("travelData").doc(whereField);
+        async function updateFirestore(tableName, whereField, updates) {
+            const docRef = firestore.collection(tableName).doc(whereField);
             const snapshot = await docRef.get();
 
-            if (!snapshot.exists) return "Table not found.";
+            if (!snapshot.exists) return "Record not found.";
 
-            const updatesPromises = [];
-            for (const [field, value] of Object.entries(updates)) {
-                updatesPromises.push(docRef.update({
-                    [field]: firebase.firestore.FieldValue.arrayUnion(value)
-                }));
-            }
-
-            await Promise.all(updatesPromises);
+            await docRef.update(updates);
             return "Record updated successfully.";
         }
 
-        async function deleteFromFirestore(tableName, whereField, whereValue) {
-            const docRef = firestore.collection("travelData").doc(whereField);
+        async function deleteFromFirestore(tableName, whereField) {
+            const docRef = firestore.collection(tableName).doc(whereField);
             const snapshot = await docRef.get();
 
-            if (!snapshot.exists) return "Table not found.";
+            if (!snapshot.exists) return "Record not found.";
 
-            const currentData = snapshot.data();
-            const deletePromises = [];
-
-            const fieldValues = currentData[whereField] || [];
-            const newFieldValues = fieldValues.filter(value => value !== whereValue);
-
-            deletePromises.push(docRef.update({ [whereField]: newFieldValues }));
-            await Promise.all(deletePromises);
+            await docRef.delete();
             return "Record deleted successfully.";
         }
 
@@ -208,8 +189,7 @@
                     const match = sqlInput.match(/CREATE TABLE (\w+) \((.+)\)/);
                     if (!match) throw new Error("Invalid CREATE command format.");
                     const tableName = match[1];
-                    const fields = match[2].split(",").map(field => field.trim());
-                    result = await createTableFirestore(tableName, fields);
+                    result = await createTableFirestore(tableName);
                 } else if (command === "INSERT") {
                     const match = sqlInput.match(/INSERT INTO (\w+) \((.+)\) VALUES \((.+)\)/);
                     if (!match) throw new Error("Invalid INSERT command format.");
@@ -219,7 +199,7 @@
                     const doc = fields.reduce((acc, field, index) => {
                         acc[field] = values[index];
                         return acc;
-                    }, { id: values[0] });
+                    }, {});
                     result = await insertIntoFirestore(tableName, doc);
                 } else if (command === "SELECT") {
                     const match = sqlInput.match(/SELECT \* FROM (\w+)/);
@@ -235,16 +215,14 @@
                         acc[field] = value;
                         return acc;
                     }, {});
-                    const whereField = match[3];
-                    const whereValue = match[4];
-                    result = await updateFirestore(tableName, whereField, whereValue, updates);
+                    const whereField = `${tableName}_${match[3]}`; // Assuming whereField is the document ID
+                    result = await updateFirestore(tableName, whereField, updates);
                 } else if (command === "DELETE") {
                     const match = sqlInput.match(/DELETE FROM (\w+) WHERE (\w+) = ['"](.+)['"]/);
                     if (!match) throw new Error("Invalid DELETE command format.");
                     const tableName = match[1];
-                    const whereField = match[2];
-                    const whereValue = match[3];
-                    result = await deleteFromFirestore(tableName, whereField, whereValue);
+                    const whereField = `${tableName}_${match[3]}`; // Assuming whereField is the document ID
+                    result = await deleteFromFirestore(tableName, whereField);
                 } else {
                     result = "Unsupported SQL command.";
                 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,14 +10,14 @@
         import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging.js';
 
         const firebaseConfig = {
-            apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
-            authDomain: "fyptravelapp-2d05e.firebaseapp.com",
-            databaseURL: "https://fyptravelapp-2d05e-default-rtdb.firebaseio.com",
-            projectId: "fyptravelapp-2d05e",
-            storageBucket: "fyptravelapp-2d05e.firebasestorage.app",
-            messagingSenderId: "467200386716",
-            appId: "1:467200386716:web:6e16cad0410484b5572f59",
-            measurementId: "G-WMKLGV40MJ"
+            apiKey: "AIzaSyBXFDGnPsoodXXfHcWhDWgpDRHm9pmupAo",
+            authDomain: "fypfirebase-c8e60.firebaseapp.com",
+            databaseURL: "https://fypfirebase-c8e60-default-rtdb.firebaseio.com",
+            projectId: "fypfirebase-c8e60",
+            storageBucket: "fypfirebase-c8e60.firebasestorage.app",
+            messagingSenderId: "568745497962",
+            appId: "1:568745497962:web:069b367303ccded5484113",
+            measurementId: "G-KMJ26VBPV5"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -26,39 +27,19 @@
             console.log('Notification permission granted.');
             return getToken(messaging, { vapidKey: 'AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8' });
         })
-        .then((token) => {
-            console.log('FCM Token:', token);
-            window.localStorage.setItem('fcmToken', token);
-        })
-        .catch((err) => {
-            console.error('Unable to get permission to notify.', err);
-        });
+            .then((token) => {
+                console.log('FCM Token:', token);
+                window.localStorage.setItem('fcmToken', token);
+            })
+            .catch((err) => {
+                console.error('Unable to get permission to notify.', err);
+            });
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('sendButton').onclick = function() {
+            document.getElementById('sendButton').onclick = function () {
                 const title = document.getElementById('title').value;
                 const body = document.getElementById('body').value;
-                const token = 'f4W9taUWSIqcocK_kcwbbT:APA91bFk1aCITa0p2FO4D2OF5HP2U_fOLRiXJHuLX81KotWskUy7M_BWm7W2Wq3tB3HypaqilgBtp9niOY_NdkMGf8jxBLnO2Jc02G8i46YyjfRQswwhieA'; // 使用提供的 Token
 
-                fetch('http://localhost:3000/send-notification', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        token: token,
-                        title: title,
-                        body: body
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Notification sent:', data);
-                    alert('Notification sent successfully!');
-                })
-                .catch(error => {
-                    console.error('Error sending notification:', error);
-                });
             };
         });
     </script>
@@ -67,7 +48,9 @@
             font-family: Arial, sans-serif;
             padding: 20px;
         }
-        input, button {
+
+        input,
+        button {
             margin: 10px 0;
             padding: 10px;
             width: 100%;
@@ -75,12 +58,16 @@
         }
     </style>
 </head>
-<body>
 
-<h1>Send Notification</h1>
-<input type="text" id="title" placeholder="Notification Title" />
-<input type="text" id="body" placeholder="Notification Body" />
-<button id="sendButton">Send Notification</button>
+<body>
+    <div id="inputIf">
+
+    </div>
+    <h1>Send Notification</h1>
+    <input type="text" id="title" placeholder="Notification Title" />
+    <input type="text" id="body" placeholder="Notification Body" />
+    <button id="sendButton">Send Notification</button>
 
 </body>
+
 </html>

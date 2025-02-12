@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +17,7 @@
             justify-content: center;
             height: 100vh;
         }
+
         nav {
             display: flex;
             justify-content: center;
@@ -23,27 +25,32 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             padding: 10px 0;
         }
+
         nav a {
             margin: 0 15px;
             text-decoration: none;
             color: #007bff;
             font-weight: bold;
         }
+
         #map {
             height: 400px;
             width: 600px;
             margin-bottom: 20px;
         }
+
         #info {
             padding: 20px;
             width: 600px;
         }
+
         input {
             display: block;
             margin: 10px 0;
             padding: 8px;
             width: calc(100% - 16px);
         }
+
         button {
             padding: 10px;
             background-color: #28a745;
@@ -52,11 +59,13 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #218838;
         }
     </style>
 </head>
+
 <body>
     <header>
         <h1>Multi-Page Interface</h1>
@@ -80,13 +89,14 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
-            authDomain: "fyptravelapp-2d05e.firebaseapp.com",
-            projectId: "fyptravelapp-2d05e",
-            storageBucket: "fyptravelapp-2d05e.appspot.com",
-            messagingSenderId: "467200386716",
-            appId: "1:467200386716:web:bc6c908d87096c7f572f59",
-            measurementId: "G-0B2E960EH7"
+            apiKey: "AIzaSyBXFDGnPsoodXXfHcWhDWgpDRHm9pmupAo",
+            authDomain: "fypfirebase-c8e60.firebaseapp.com",
+            databaseURL: "https://fypfirebase-c8e60-default-rtdb.firebaseio.com",
+            projectId: "fypfirebase-c8e60",
+            storageBucket: "fypfirebase-c8e60.firebasestorage.app",
+            messagingSenderId: "568745497962",
+            appId: "1:568745497962:web:069b367303ccded5484113",
+            measurementId: "G-KMJ26VBPV5"
         };
 
         firebase.initializeApp(firebaseConfig);

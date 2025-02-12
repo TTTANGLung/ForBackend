@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +10,9 @@
       width: 100%;
       border-collapse: collapse;
     }
-    th, td {
+
+    th,
+    td {
       border: 1px solid #ddd;
       padding: 8px;
       text-align: left;
@@ -20,13 +23,14 @@
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
-      authDomain: "fyptravelapp-2d05e.firebaseapp.com",
-      databaseURL: "https://fyptravelapp-2d05e-default-rtdb.firebaseio.com",
-      projectId: "fyptravelapp-2d05e",
-      storageBucket: "fyptravelapp-2d05e.appspot.com",
-      messagingSenderId: "467200386716",
-      appId: "1:467200386716:web:bc6c908d87096c7f572f59"
+      apiKey: "AIzaSyBXFDGnPsoodXXfHcWhDWgpDRHm9pmupAo",
+      authDomain: "fypfirebase-c8e60.firebaseapp.com",
+      databaseURL: "https://fypfirebase-c8e60-default-rtdb.firebaseio.com",
+      projectId: "fypfirebase-c8e60",
+      storageBucket: "fypfirebase-c8e60.firebasestorage.app",
+      messagingSenderId: "568745497962",
+      appId: "1:568745497962:web:069b367303ccded5484113",
+      measurementId: "G-KMJ26VBPV5"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -53,6 +57,7 @@
     loadPosts();
   </script>
 </head>
+
 <body>
   <h1>Forum</h1>
   <table>
@@ -65,8 +70,8 @@
       </tr>
     </thead>
     <tbody id="posts-table-body">
-      <!-- Posts will be populated here -->
     </tbody>
   </table>
 </body>
+
 </html>

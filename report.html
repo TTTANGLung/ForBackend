@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completed Trips</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .filter-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .view-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .view-button:hover {
+            background: #218838;
+        }
+        .report-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+        h2 {
+            color: #007BFF;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 5px;
+        }
+        ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        button {
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .expense-report {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #007BFF;
+            border-radius: 5px;
+            background-color: #e9f7ff;
+        }
+        .feedback {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 5px solid #007BFF;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Completed Travel Plans</h1>
+    <div class="filter-container">
+        <label for="countryFilter">Filter by Country: </label>
+        <select id="countryFilter" onchange="filterTrips()">
+            <option value="all">All</option>
+            <option value="Japan">Japan</option>
+            <option value="Italy">Italy</option>
+            <option value="Australia">Australia</option>
+            <option value="France">France</option>
+            <option value="Spain">Spain</option>
+            <option value="Canada">Canada</option>
+            <option value="Brazil">Brazil</option>
+            <option value="Germany">Germany</option>
+            <option value="Thailand">Thailand</option>
+            <option value="India">India</option>
+            <option value="Mexico">Mexico</option>
+            <option value="South Africa">South Africa</option>
+            <option value="USA">USA</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Russia">Russia</option>
+            <option value="Turkey">Turkey</option>
+            <option value="Egypt">Egypt</option>
+            <option value="Greece">Greece</option>
+            <option value="Portugal">Portugal</option>
+            <option value="Argentina">Argentina</option>
+        </select>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Trip ID</th>
+                <th>Country</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Duration (days)</th>
+                <th>Total Expenses</th>
+                <th>View Report</th>
+            </tr>
+        </thead>
+        <tbody id="tripList"></tbody>
+    </table>
+
+    <script>
+const trips = [
+    { id: 1, country: "Japan", startTime: "2023-01-15", endTime: "2023-01-17", duration: 2, attractions: ["Tokyo", "Kyoto", "Osaka", "Hiroshima", "Nara", "Sapporo", "Okinawa"], expenses: [{ item: "Flight", cost: 300 }, { item: "Hotel", cost: 150 }, { item: "Food", cost: 50 }, { item: "Activities", cost: 100 }] },
+    { id: 2, country: "Italy", startTime: "2023-02-05", endTime: "2023-02-09", duration: 4, attractions: ["Rome", "Venice", "Florence", "Milan", "Naples", "Sicily", "Bologna"], expenses: [{ item: "Flight", cost: 400 }, { item: "Hotel", cost: 200 }, { item: "Food", cost: 75 }, { item: "Activities", cost: 150 }] },
+    { id: 3, country: "Australia", startTime: "2023-03-10", endTime: "2023-03-12", duration: 2, attractions: ["Sydney", "Melbourne", "Brisbane", "Gold Coast", "Cairns", "Perth", "Adelaide"], expenses: [{ item: "Flight", cost: 600 }, { item: "Hotel", cost: 300 }, { item: "Food", cost: 150 }, { item: "Activities", cost: 250 }] },
+    { id: 4, country: "France", startTime: "2023-04-01", endTime: "2023-04-06", duration: 5, attractions: ["Paris", "Lyon", "Nice", "Marseille", "Bordeaux", "Strasbourg", "Toulouse"], expenses: [{ item: "Flight", cost: 550 }, { item: "Hotel", cost: 350 }, { item: "Food", cost: 180 }, { item: "Activities", cost: 220 }] },
+    { id: 5, country: "Spain", startTime: "2023-05-10", endTime: "2023-05-14", duration: 4, attractions: ["Barcelona", "Madrid", "Seville", "Valencia", "Bilbao", "Granada", "Malaga"], expenses: [{ item: "Flight", cost: 480 }, { item: "Hotel", cost: 300 }, { item: "Food", cost: 120 }, { item: "Activities", cost: 200 }] },
+    { id: 6, country: "Canada", startTime: "2023-06-05", endTime: "2023-06-11", duration: 6, attractions: ["Toronto", "Vancouver", "Montreal", "Calgary", "Ottawa", "Quebec City", "Halifax"], expenses: [{ item: "Flight", cost: 700 }, { item: "Hotel", cost: 450 }, { item: "Food", cost: 220 }, { item: "Activities", cost: 300 }] },
+    { id: 7, country: "Brazil", startTime: "2023-07-01", endTime: "2023-07-05", duration: 4, attractions: ["Rio de Janeiro", "São Paulo", "Salvador", "Brasilia", "Fortaleza", "Curitiba", "Recife"], expenses: [{ item: "Flight", cost: 600 }, { item: "Hotel", cost: 400 }, { item: "Food", cost: 200 }, { item: "Activities", cost: 250 }] },
+    { id: 8, country: "Germany", startTime: "2023-08-15", endTime: "2023-08-22", duration: 7, attractions: ["Berlin", "Munich", "Hamburg", "Frankfurt", "Cologne", "Düsseldorf", "Stuttgart"], expenses: [{ item: "Flight", cost: 550 }, { item: "Hotel", cost: 350 }, { item: "Food", cost: 150 }, { item: "Activities", cost: 300 }] },
+    { id: 9, country: "Thailand", startTime: "2023-09-10", endTime: "2023-09-14", duration: 4, attractions: ["Bangkok", "Phuket", "Chiang Mai", "Pattaya", "Krabi", "Ko Samui", "Ayutthaya"], expenses: [{ item: "Flight", cost: 500 }, { item: "Hotel", cost: 250 }, { item: "Food", cost: 100 }, { item: "Activities", cost: 150 }] },
+    { id: 10, country: "India", startTime: "2023-10-05", endTime: "2023-10-11", duration: 6, attractions: ["Delhi", "Mumbai", "Jaipur", "Varanasi", "Agra", "Kerala", "Goa"], expenses: [{ item: "Flight", cost: 600 }, { item: "Hotel", cost: 350 }, { item: "Food", cost: 150 }, { item: "Activities", cost: 200 }] },
+    { id: 11, country: "Mexico", startTime: "2023-11-01", endTime: "2023-11-05", duration: 4, attractions: ["Mexico City", "Cancun", "Guadalajara", "Monterrey", "Tijuana", "Puebla", "Mérida"], expenses: [{ item: "Flight", cost: 500 }, { item: "Hotel", cost: 300 }, { item: "Food", cost: 120 }, { item: "Activities", cost: 180 }] },
+    { id: 12, country: "South Africa", startTime: "2023-12-10", endTime: "2023-12-15", duration: 5, attractions: ["Cape Town", "Johannesburg", "Durban", "Pretoria", "Port Elizabeth", "Stellenbosch", "Kruger National Park"], expenses: [{ item: "Flight", cost: 700 }, { item: "Hotel", cost: 400 }, { item: "Food", cost: 200 }, { item: "Activities", cost: 250 }] },
+    { id: 13, country: "USA", startTime: "2023-12-20", endTime: "2024-01-01", duration: 12, attractions: ["New York", "Los Angeles", "Chicago", "San Francisco", "Miami", "Las Vegas", "Seattle", "Austin"], expenses: [{ item: "Flight", cost: 1200 }, { item: "Hotel", cost: 1500 }, { item: "Food", cost: 600 }, { item: "Activities", cost: 800 }] },
+    { id: 14, country: "United Kingdom", startTime: "2024-01-01", endTime: "2024-01-08", duration: 7, attractions: ["London", "Edinburgh", "Manchester", "Birmingham", "Liverpool", "Glasgow", "Cardiff"], expenses: [{ item: "Flight", cost: 500 }, { item: "Hotel", cost: 400 }, { item: "Food", cost: 200 }, { item: "Activities", cost: 250 }] },
+    { id: 15, country: "Russia", startTime: "2024-01-10", endTime: "2024-01-16", duration: 6, attractions: ["Moscow", "Saint Petersburg", "Kazan", "Sochi", "Vladivostok", "Yekaterinburg"], expenses: [{ item: "Flight", cost: 650 }, { item: "Hotel", cost: 350 }, { item: "Food", cost: 180 }, { item: "Activities", cost: 220 }] },
+    { id: 16, country: "Turkey", startTime: "2024-01-05", endTime: "2024-01-12", duration: 7, attractions: ["Istanbul", "Cappadocia", "Ephesus", "Pamukkale", "Antalya", "Bodrum", "Izmir"], expenses: [{ item: "Flight", cost: 400 }, { item: "Hotel", cost: 300 }, { item: "Food", cost: 150 }, { item: "Activities", cost: 200 }] },
+    { id: 17, country: "Egypt", startTime: "2024-01-01", endTime: "2024-01-07", duration: 6, attractions: ["Cairo", "Luxor", "Aswan", "Alexandria", "Sharm El Sheikh", "Giza"], expenses: [{ item: "Flight", cost: 550 }, { item: "Hotel", cost: 350 }, { item: "Food", cost: 150 }, { item: "Activities", cost: 180 }] },
+    { id: 18, country: "Greece", startTime: "2024-01-15", endTime: "2024-01-21", duration: 6, attractions: ["Athens", "Santorini", "Mykonos", "Crete", "Thessaloniki", "Rhodes"], expenses: [{ item: "Flight", cost: 600 }, { item: "Hotel", cost: 400 }, { item: "Food", cost: 200 }, { item: "Activities", cost: 250 }] },
+    { id: 19, country: "Portugal", startTime: "2024-01-20", endTime: "2024-01-26", duration: 6, attractions: ["Lisbon", "Porto", "Sintra", "Faro", "Coimbra", "Braga"], expenses: [{ item: "Flight", cost: 500 }, { item: "Hotel", cost: 300 }, { item: "Food", cost: 150 }, { item: "Activities", cost: 180 }] },
+    { id: 20, country: "Argentina", startTime: "2024-01-15", endTime: "2024-01-22", duration: 7, attractions: ["Buenos Aires", "Mendoza", "Bariloche", "Salta", "Cordoba", "Iguazu Falls"], expenses: [{ item: "Flight", cost: 700 }, { item: "Hotel", cost: 400 }, { item: "Food", cost: 200 }, { item: "Activities", cost: 250 }] },
+    { id: 21, country: "Finland", startTime: "2024-01-10", endTime: "2024-01-17", duration: 7, attractions: ["Helsinki", "Lapland", "Rovaniemi", "Tampere", "Oulu"], expenses: [{ item: "Flight", cost: 600 }, { item: "Hotel", cost: 300 }, { item: "Food", cost: 150 }, { item: "Activities", cost: 200 }] },
+    { id: 22, country: "Sweden", startTime: "2024-01-01", endTime: "2024-01-08", duration: 7, attractions: ["Stockholm", "Gothenburg", "Malmo", "Uppsala", "Kiruna"], expenses: [{ item: "Flight", cost: 550 }, { item: "Hotel", cost: 350 }, { item: "Food", cost: 180 }, { item: "Activities", cost: 220 }] },
+    { id: 23, country: "Norway", startTime: "2024-01-02", endTime: "2024-01-09", duration: 7, attractions: ["Oslo", "Bergen", "Stavanger", "Tromsø", "Ålesund"], expenses: [{ item: "Flight", cost: 650 }, { item: "Hotel", cost: 400 }, { item: "Food", cost: 200 }, { item: "Activities", cost: 250 }] },
+    { id: 24, country: "Denmark", startTime: "2024-01-03", endTime: "2024-01-10", duration: 7, attractions: ["Copenhagen", "Aarhus", "Odense", "Aalborg", "Esbjerg"], expenses: [{ item: "Flight", cost: 500 }, { item: "Hotel", cost: 300 }, { item: "Food", cost: 150 }, { item: "Activities", cost: 200 }] },
+];
+
+
+
+        function displayTrips(filteredTrips) {
+            const tripList = document.getElementById('tripList');
+            tripList.innerHTML = '';
+            filteredTrips.forEach(trip => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${trip.id}</td>
+                    <td>${trip.country}</td>
+                    <td>${trip.startTime}</td>
+                    <td>${trip.endTime}</td>
+                    <td>${trip.duration}</td>
+                    <td>$${calculateTotalExpenses(trip.expenses)}</td>
+                    <td><button class="view-button" onclick='showReport(${trip.id})'>View Report</button></td>
+                `;
+                tripList.appendChild(row);
+            });
+        }
+
+        function calculateTotalExpenses(expenses) {
+            return expenses.reduce((total, expense) => total + expense.cost, 0);
+        }
+
+        function showReport(tripId) {
+            const trip = trips.find(t => t.id === tripId);
+            const report = `
+                <div class="report-container">
+                    <h1>Travel Report</h1>
+                    <p><strong>Trip ID:</strong> ${trip.id}</p>
+                    <p><strong>Country:</strong> ${trip.country}</p>
+                    <p><strong>Start Time:</strong> ${trip.startTime}</p>
+                    <p><strong>End Time:</strong> ${trip.endTime}</p>
+                    <p><strong>Duration:</strong> ${trip.duration} days</p>
+                    <h2>Attractions</h2>
+                    <ul>
+                        ${trip.attractions.map(attraction => `<li>${attraction}</li>`).join('')}
+                    </ul>
+                    <div class="expense-report">
+                        <h2>Expense Breakdown</h2>
+                        <ul>
+                            ${trip.expenses.map(expense => `<li>${expense.item}: $${expense.cost}</li>`).join('')}
+                        </ul>
+                        <p><strong>Total Expenses:</strong> $${calculateTotalExpenses(trip.expenses)}</p>
+                    </div>
+                    <div class="feedback">
+                        <h2>User Feedback</h2>
+                        <p><strong>Overall Satisfaction:</strong> ★★★★☆</p>
+                    </div>
+                    <button onclick="goBack()">Back</button>
+                </div>
+            `;
+
+            document.body.innerHTML = report;
+        }
+
+        function goBack() {
+            document.body.innerHTML = `
+                <h1>Completed Travel Plans</h1>
+                <div class="filter-container">
+                    <label for="countryFilter">Filter by Country: </label>
+                    <select id="countryFilter" onchange="filterTrips()">
+                        <option value="all">All</option>
+                        <option value="Japan">Japan</option>
+                        <option value="Italy">Italy</option>
+                        <option value="Australia">Australia</option>
+                        <option value="France">France</option>
+                        <option value="Spain">Spain</option>
+                        <option value="Canada">Canada</option>
+                        <option value="Brazil">Brazil</option>
+                        <option value="Germany">Germany</option>
+                        <option value="Thailand">Thailand</option>
+                        <option value="India">India</option>
+                        <option value="Mexico">Mexico</option>
+                        <option value="South Africa">South Africa</option>
+                        <option value="USA">USA</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                        <option value="Russia">Russia</option>
+                        <option value="Turkey">Turkey</option>
+                        <option value="Egypt">Egypt</option>
+                        <option value="Greece">Greece</option>
+                        <option value="Portugal">Portugal</option>
+                        <option value="Argentina">Argentina</option>
+                    </select>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Trip ID</th>
+                            <th>Country</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Duration (days)</th>
+                            <th>Total Expenses</th>
+                            <th>View Report</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tripList"></tbody>
+                </table>
+            `;
+            displayTrips(trips);
+        }
+
+        function filterTrips() {
+            const filterValue = document.getElementById('countryFilter').value;
+            const filteredTrips = filterValue === 'all' ? trips : trips.filter(trip => trip.country === filterValue);
+            displayTrips(filteredTrips);
+        }
+
+        displayTrips(trips);
+    </script>
+</body>
+</html>

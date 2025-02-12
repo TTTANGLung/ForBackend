@@ -68,7 +68,7 @@
         }
 
         .selected {
-            background-color: #d1ecf1; /* 选中的颜色 */
+            background-color: #d1ecf1;
         }
 
         .data-list {
@@ -101,7 +101,7 @@
             padding: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            width: calc(100% - 10px); /* Adjust width */
+            width: calc(100% - 10px);
         }
     </style>
 </head>
@@ -127,34 +127,31 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyCDqjgOxeZejvQ6t0v1nFSEPmtsr0v00K8",
-            authDomain: "fyptravelapp-2d05e.firebaseapp.com",
-            databaseURL: "https://fyptravelapp-2d05e-default-rtdb.firebaseio.com",
-            projectId: "fyptravelapp-2d05e",
-            storageBucket: "fyptravelapp-2d05e.firebasestorage.app",
-            messagingSenderId: "467200386716",
-            appId: "1:467200386716:web:6e16cad0410484b5572f59",
-            measurementId: "G-WMKLGV40MJ"
+            apiKey: "AIzaSyBXFDGnPsoodXXfHcWhDWgpDRHm9pmupAo",
+            authDomain: "fypfirebase-c8e60.firebaseapp.com",
+            databaseURL: "https://fypfirebase-c8e60-default-rtdb.firebaseio.com",
+            projectId: "fypfirebase-c8e60",
+            storageBucket: "fypfirebase-c8e60.firebasestorage.app",
+            messagingSenderId: "568745497962",
+            appId: "1:568745497962:web:069b367303ccded5484113",
+            measurementId: "G-KMJ26VBPV5"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         let currentCollection = '';
         let selectedDocId = '';
 
-        // 获取所有集合并显示在侧边栏
         async function loadCollections() {
-            const collectionsList = await getDocs(collection(db, '/travelData')); // 替换为你的集合路径
+            const collectionsList = await getDocs(collection(db, '/travelData')); 
             const tablesListDiv = document.getElementById('tablesList');
 
             collectionsList.forEach((doc) => {
                 const div = document.createElement('div');
                 div.className = 'table-name';
-                div.innerText = doc.id; // 显示集合名
+                div.innerText = doc.id;
                 div.onclick = () => loadCollectionData(doc.id);
                 tablesListDiv.appendChild(div);
             });
@@ -177,19 +174,15 @@
 
             querySnapshot.forEach(doc => {
                 const data = doc.data();
-                const rowId = doc.id; // 保存文档 ID
+                const rowId = doc.id;
 
-                // 创建列表项
                 const listItem = document.createElement('li');
-                listItem.innerHTML = `<strong>Document ID:</strong> ${rowId}<br>`;
-                listItem.setAttribute('data-id', rowId); // 存储文档 ID 以便后续使用
+                listItem.setAttribute('data-id', rowId);
 
-                // 添加字段及其值
                 Object.entries(data).forEach(([key, value]) => {
                     listItem.innerHTML += `<strong>${key}:</strong> <span class="value">${value}</span><br>`;
                 });
 
-                // 点击行选择文档
                 listItem.onclick = () => {
                     selectedDocId = rowId;
                     document.querySelectorAll('.data-list li').forEach(li => li.classList.remove('selected'));
@@ -197,7 +190,6 @@
                     document.getElementById('deleteButton').style.display = 'inline-block';
                     document.getElementById('editButton').style.display = 'inline-block';
 
-                    // 填充编辑区域
                     populateEditFields(data);
                 };
 
@@ -207,46 +199,45 @@
 
         function populateEditFields(data) {
             const editContainer = document.getElementById('editContainer');
-            editContainer.innerHTML = ''; // 清空之前的输入框
+            editContainer.innerHTML = '';
             Object.entries(data).forEach(([key, value]) => {
                 const div = document.createElement('div');
                 div.innerHTML = `<strong>${key}:</strong>`;
                 const input = document.createElement('input');
                 input.type = 'text';
-                input.value = value; // 设置当前值
-                input.setAttribute('data-key', key); // 存储字段名
+                input.value = value; 
+                input.setAttribute('data-key', key);
                 div.appendChild(input);
                 editContainer.appendChild(div);
             });
-            editContainer.style.display = 'block'; // 显示编辑区域
-            document.getElementById('saveButton').style.display = 'inline-block'; // 显示保存按钮
+            editContainer.style.display = 'block';
+            document.getElementById('saveButton').style.display = 'inline-block';
         }
 
-        // 删除选定的文档
         document.getElementById('deleteButton').onclick = async function () {
             if (selectedDocId) {
                 const docRef = doc(db, currentCollection, selectedDocId);
                 await deleteDoc(docRef);
                 alert('Document deleted!');
-                loadCollectionData(currentCollection); // 重新加载数据
-                document.getElementById('editContainer').style.display = 'none'; // 隐藏编辑区域
+                loadCollectionData(currentCollection);
+                document.getElementById('editContainer').style.display = 'none'; 
                 document.getElementById('saveButton').style.display = 'none';
             }
         };
 
-        // 保存编辑后的数据
+        
         document.getElementById('saveButton').onclick = async function () {
             if (selectedDocId) {
                 const inputs = document.querySelectorAll('#editContainer input');
                 const updates = {};
                 inputs.forEach(input => {
                     const key = input.getAttribute('data-key');
-                    updates[key] = input.value; // 获取输入框的值
+                    updates[key] = input.value; 
                 });
                 const docRef = doc(db, currentCollection, selectedDocId);
                 await updateDoc(docRef, updates);
                 alert('Document updated!');
-                loadCollectionData(currentCollection); // 重新加载数据
+                loadCollectionData(currentCollection);
             }
         };
 
