@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
     <title>Ad upload page</title>
     <style>
         body {
@@ -30,6 +31,13 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             max-width: 95%;
+        }
+
+        #uploaded_image {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+            display: none;
         }
 
         button {
@@ -69,13 +77,14 @@
             <input type="text" id="title" placeholder="Ad title" required>
             <textarea id="content" rows="4" placeholder="Ad content"></textarea>
             <input type="text" id="token" placeholder="Enter key" required>
-            <input type="file" id="image" accept="image/*" required>
+            <input type="button" id="upload_widget_opener" value="Upload Image" />
             <button type="submit">Upload ad</button>
         </form>
+
         <div id="preview">
             <h3>Advertisement preview</h3>
             <h4 id="previewTitle"></h4>
-            <img id="previewImage" alt="Advertisement image preview">
+            <img id="uploaded_image" src="" alt="Uploaded Image" />
             <p id="previewContent"></p>
         </div>
     </div>
@@ -87,24 +96,30 @@
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
             const token = document.getElementById('token').value;
-            const imageFile = document.getElementById('image').files[0];
 
             document.getElementById('previewTitle').textContent = title;
-
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                document.getElementById('previewImage').src = e.target.result;
-
-                if (content) {
-                    document.getElementById('previewContent').textContent = content;
-                } else {
-                    document.getElementById('previewContent').textContent = '';
-                }
-
-                document.getElementById('preview').style.display = 'block';
+            if (content) {
+                document.getElementById('previewContent').textContent = content;
+            } else {
+                document.getElementById('previewContent').textContent = '';
             }
-            reader.readAsDataURL(imageFile);
+
+            document.getElementById('preview').style.display = 'block';
         });
+        var myWidget = cloudinary.createUploadWidget({
+            cloudName: 'dxzdaacuv',
+            uploadPreset: 'webUpload'
+        }, (error, result) => {
+            if (!error && result && result.event === "success") {
+                console.log('Done! Here is the image info: ', result.info);
+                const imageUrl = result.info.secure_url;
+                document.getElementById('uploaded_image').src = imageUrl;
+                document.getElementById('uploaded_image').style.display = 'block';
+            }
+        });
+        document.getElementById("upload_widget_opener").addEventListener("click", function () {
+            myWidget.open();
+        }, false);
     </script>
 </body>
 

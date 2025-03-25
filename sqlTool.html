@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase SQL-like Interface</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <title>Manager Interface</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -80,94 +78,40 @@
 
 <body>
     <div class="container">
-        <h1>Firebase SQL-like Interface</h1>
-        <textarea id="sqlInput" placeholder="Enter SQL-like commands, e.g.:
-        CREATE TABLE Users (userId, name, email, password);
-        SELECT * FROM Users;
-        INSERT INTO Users (userId, name, email) VALUES ('1', 'John Doe', 'john@example.com');
-        UPDATE Users SET name = 'Jane Doe' WHERE userId = '1';
-        DELETE FROM Users WHERE userId = '1';"></textarea>
+        <h1>Manager Interface</h1>
+        <textarea id="sqlInput" placeholder="Enter SQL commands for managing users, e.g.:
+        CREATE TABLE Managers (managerId, name, email, password);
+        INSERT INTO Managers (managerId, name, email) VALUES ('1', 'Admin', 'admin@example.com');
+        SELECT * FROM Managers;
+        UPDATE Managers SET name = 'New Admin' WHERE managerId = '1';
+        DELETE FROM Managers WHERE managerId = '1';"></textarea>
         <button id="executeButton">Execute SQL</button>
         <div id="output" class="output"></div>
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBXFDGnPsoodXXfHcWhDWgpDRHm9pmupAo",
-            authDomain: "fypfirebase-c8e60.firebaseapp.com",
-            databaseURL: "https://fypfirebase-c8e60-default-rtdb.firebaseio.com",
-            projectId: "fypfirebase-c8e60",
-            storageBucket: "fypfirebase-c8e60.firebasestorage.app",
-            messagingSenderId: "568745497962",
-            appId: "1:568745497962:web:069b367303ccded5484113",
-            measurementId: "G-KMJ26VBPV5"
-        };
+        async function executeSqlCommand(sqlInput) {
+            const output = document.getElementById("output");
+            const response = await fetch('conn.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: parseSql(sqlInput),
+                    sql: sqlInput,
+                })
+            });
 
-        firebase.initializeApp(firebaseConfig);
-        const firestore = firebase.firestore();
+            const result = await response.json();
+            output.style.display = "block";
+            output.textContent = result;
+            output.classList.remove("error");
+        }
 
         function parseSql(sql) {
             const command = sql.split(" ")[0].toUpperCase();
             return command;
-        }
-
-        async function createTableFirestore(tableName) {
-            // 创建集合并添加一个默认文档
-            const defaultData = { message: "This is a template document." };
-            const docRef = await firestore.collection(tableName).add(defaultData);
-            return `${tableName} created successfully with document ID: ${docRef.id}`;
-        }
-
-        async function insertIntoFirestore(tableName, values) {
-            const collectionRef = firestore.collection(tableName);
-            const snapshot = await collectionRef.get();
-
-            const existingIds = snapshot.docs.map(doc => doc.id);
-            const orderNumbers = existingIds
-                .map(id => {
-                    const parts = id.split('_');
-                    return parts.length > 1 ? parseInt(parts[1]) : 0;
-                });
-
-            // 计算下一个次序
-            const nextOrder = orderNumbers.length > 0 ? Math.max(...orderNumbers) + 1 : 1;
-
-            // 创建新文档 ID
-            const newDocId = `${tableName}_${nextOrder}`;
-            const data = { id: newDocId }; // 初始化文档 ID
-
-            Object.keys(values).forEach(field => {
-                data[field] = values[field].trim().replace(/['"]/g, "");
-            });
-
-            await collectionRef.doc(newDocId).set(data);
-            return "Record inserted successfully.";
-        }
-
-        async function selectFromFirestore(tableName) {
-            const snapshot = await firestore.collection(tableName).get();
-            const data = snapshot.docs.map(doc => doc.data());
-            return JSON.stringify(data, null, 2);
-        }
-
-        async function updateFirestore(tableName, whereField, updates) {
-            const docRef = firestore.collection(tableName).doc(whereField);
-            const snapshot = await docRef.get();
-
-            if (!snapshot.exists) return "Record not found.";
-
-            await docRef.update(updates);
-            return "Record updated successfully.";
-        }
-
-        async function deleteFromFirestore(tableName, whereField) {
-            const docRef = firestore.collection(tableName).doc(whereField);
-            const snapshot = await docRef.get();
-
-            if (!snapshot.exists) return "Record not found.";
-
-            await docRef.delete();
-            return "Record deleted successfully.";
         }
 
         document.getElementById("executeButton").addEventListener("click", async () => {
@@ -180,61 +124,7 @@
                 output.classList.add("error");
                 return;
             }
-
-            try {
-                const command = parseSql(sqlInput);
-                let result;
-
-                if (command === "CREATE") {
-                    const match = sqlInput.match(/CREATE TABLE (\w+) \((.+)\)/);
-                    if (!match) throw new Error("Invalid CREATE command format.");
-                    const tableName = match[1];
-                    result = await createTableFirestore(tableName);
-                } else if (command === "INSERT") {
-                    const match = sqlInput.match(/INSERT INTO (\w+) \((.+)\) VALUES \((.+)\)/);
-                    if (!match) throw new Error("Invalid INSERT command format.");
-                    const tableName = match[1];
-                    const fields = match[2].split(",").map(field => field.trim());
-                    const values = match[3].split(",").map(value => value.trim().replace(/['"]/g, ""));
-                    const doc = fields.reduce((acc, field, index) => {
-                        acc[field] = values[index];
-                        return acc;
-                    }, {});
-                    result = await insertIntoFirestore(tableName, doc);
-                } else if (command === "SELECT") {
-                    const match = sqlInput.match(/SELECT \* FROM (\w+)/);
-                    if (!match) throw new Error("Invalid SELECT command format.");
-                    const tableName = match[1];
-                    result = await selectFromFirestore(tableName);
-                } else if (command === "UPDATE") {
-                    const match = sqlInput.match(/UPDATE (\w+) SET (.+) WHERE (\w+) = ['"](.+)['"]/);
-                    if (!match) throw new Error("Invalid UPDATE command format.");
-                    const tableName = match[1];
-                    const updates = match[2].split(",").reduce((acc, update) => {
-                        const [field, value] = update.split("=").map(item => item.trim().replace(/['"]/g, ""));
-                        acc[field] = value;
-                        return acc;
-                    }, {});
-                    const whereField = `${tableName}_${match[3]}`; // Assuming whereField is the document ID
-                    result = await updateFirestore(tableName, whereField, updates);
-                } else if (command === "DELETE") {
-                    const match = sqlInput.match(/DELETE FROM (\w+) WHERE (\w+) = ['"](.+)['"]/);
-                    if (!match) throw new Error("Invalid DELETE command format.");
-                    const tableName = match[1];
-                    const whereField = `${tableName}_${match[3]}`; // Assuming whereField is the document ID
-                    result = await deleteFromFirestore(tableName, whereField);
-                } else {
-                    result = "Unsupported SQL command.";
-                }
-
-                output.style.display = "block";
-                output.textContent = result;
-                output.classList.remove("error");
-            } catch (error) {
-                output.style.display = "block";
-                output.textContent = `Error: ${error.message}`;
-                output.classList.add("error");
-            }
+            await executeSqlCommand(sqlInput);
         });
     </script>
 </body>

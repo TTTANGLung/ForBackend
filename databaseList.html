@@ -71,22 +71,21 @@
             background-color: #d1ecf1;
         }
 
-        .data-list {
-            list-style-type: none;
-            padding: 0;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
 
-        .data-list li {
-            margin: 10px 0;
+        th,
+        td {
             padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #f2f2f2;
-            cursor: pointer;
+            text-align: left;
         }
 
-        .data-list li:hover {
-            background-color: #e0e0e0;
+        th {
+            background-color: #f2f2f2;
         }
 
         .editable {
@@ -117,131 +116,156 @@
             <button id="deleteButton" style="display:none;">Delete Selected</button>
             <button id="editButton" style="display:none;">Edit Selected</button>
         </div>
-        <ul id="tableData" class="data-list">No data to display.</ul>
+        <table id="tableData" style="display:none;">
+            <thead>
+                <tr id="tableHeader"></tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+        <div class="no-data" id="noDataMessage" style="display:none;">No data to display.</div>
 
         <div id="editContainer" class="editable" style="display:none;"></div>
         <button id="saveButton" style="display:none;">Save Changes</button>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js";
+    <script>
+        const apiBaseUrl = 'http://20.2.136.249:3000';
+        let selectedTableName = '';
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBXFDGnPsoodXXfHcWhDWgpDRHm9pmupAo",
-            authDomain: "fypfirebase-c8e60.firebaseapp.com",
-            databaseURL: "https://fypfirebase-c8e60-default-rtdb.firebaseio.com",
-            projectId: "fypfirebase-c8e60",
-            storageBucket: "fypfirebase-c8e60.firebasestorage.app",
-            messagingSenderId: "568745497962",
-            appId: "1:568745497962:web:069b367303ccded5484113",
-            measurementId: "G-KMJ26VBPV5"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        let currentCollection = '';
-        let selectedDocId = '';
-
-        async function loadCollections() {
-            const collectionsList = await getDocs(collection(db, '/travelData')); 
+        async function loadTables() {
+            const response = await fetch(`${apiBaseUrl}/api/tables`);
+            const tables = await response.json();
             const tablesListDiv = document.getElementById('tablesList');
 
-            collectionsList.forEach((doc) => {
+            tables.forEach(tableName => {
                 const div = document.createElement('div');
                 div.className = 'table-name';
-                div.innerText = doc.id;
-                div.onclick = () => loadCollectionData(doc.id);
+                div.innerText = tableName;
+                div.onclick = () => loadTableData(tableName);
                 tablesListDiv.appendChild(div);
             });
         }
 
-        async function loadCollectionData(collectionName) {
-            currentCollection = collectionName;
-            const tableDataDiv = document.getElementById('tableData');
+        async function loadTableData(tableName) {
+            selectedTableName = tableName;
             const tableTitle = document.getElementById('tableTitle');
-            tableTitle.innerText = `Data from ${collectionName}`;
-            tableDataDiv.innerHTML = '';
+            tableTitle.innerText = `Data from ${tableName}`;
 
-            const collectionRef = collection(db, collectionName);
-            const querySnapshot = await getDocs(collectionRef);
+            const response = await fetch(`${apiBaseUrl}/api/${tableName.toLowerCase()}`);
+            const data = await response.json();
 
-            if (querySnapshot.empty) {
-                tableDataDiv.innerHTML = '<li class="no-data">No data to display.</li>';
+            const tableHeader = document.getElementById('tableHeader');
+            const tableBody = document.getElementById('tableBody');
+
+            tableHeader.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (data.length === 0) {
+                document.getElementById('noDataMessage').style.display = 'block';
+                document.getElementById('tableData').style.display = 'none';
                 return;
             }
 
-            querySnapshot.forEach(doc => {
-                const data = doc.data();
-                const rowId = doc.id;
-
-                const listItem = document.createElement('li');
-                listItem.setAttribute('data-id', rowId);
-
-                Object.entries(data).forEach(([key, value]) => {
-                    listItem.innerHTML += `<strong>${key}:</strong> <span class="value">${value}</span><br>`;
-                });
-
-                listItem.onclick = () => {
-                    selectedDocId = rowId;
-                    document.querySelectorAll('.data-list li').forEach(li => li.classList.remove('selected'));
-                    listItem.classList.add('selected');
-                    document.getElementById('deleteButton').style.display = 'inline-block';
-                    document.getElementById('editButton').style.display = 'inline-block';
-
-                    populateEditFields(data);
-                };
-
-                tableDataDiv.appendChild(listItem);
+            Object.keys(data[0]).forEach(key => {
+                const th = document.createElement('th');
+                th.innerText = key;
+                tableHeader.appendChild(th);
             });
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                Object.values(item).forEach(value => {
+                    const td = document.createElement('td');
+                    td.innerText = value;
+                    row.appendChild(td);
+                });
+                row.onclick = () => handleRowClick(item);
+                tableBody.appendChild(row);
+            });
+
+            document.getElementById('noDataMessage').style.display = 'none';
+            document.getElementById('tableData').style.display = 'table';
+            document.getElementById('deleteButton').style.display = 'none';
+            document.getElementById('editButton').style.display = 'none';
         }
 
-        function populateEditFields(data) {
-            const editContainer = document.getElementById('editContainer');
-            editContainer.innerHTML = '';
-            Object.entries(data).forEach(([key, value]) => {
-                const div = document.createElement('div');
-                div.innerHTML = `<strong>${key}:</strong>`;
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.value = value; 
-                input.setAttribute('data-key', key);
-                div.appendChild(input);
-                editContainer.appendChild(div);
-            });
-            editContainer.style.display = 'block';
-            document.getElementById('saveButton').style.display = 'inline-block';
+        let selectedItem = null;
+
+        function handleRowClick(item) {
+            if (selectedItem) {
+                const previousRow = document.querySelector(`tr[data-id="${selectedItem.id}"]`);
+                if (previousRow) {
+                    previousRow.classList.remove('selected');
+                }
+            }
+            selectedItem = item;
+            const currentRow = document.querySelector(`tr[data-id="${selectedItem.id}"]`);
+            if (currentRow) {
+                currentRow.classList.add('selected');
+            }
+            document.getElementById('deleteButton').style.display = 'inline';
+            document.getElementById('editButton').style.display = 'inline';
         }
 
         document.getElementById('deleteButton').onclick = async function () {
-            if (selectedDocId) {
-                const docRef = doc(db, currentCollection, selectedDocId);
-                await deleteDoc(docRef);
-                alert('Document deleted!');
-                loadCollectionData(currentCollection);
-                document.getElementById('editContainer').style.display = 'none'; 
-                document.getElementById('saveButton').style.display = 'none';
-            }
+            if (!selectedItem) return;
+            const tableName = selectedTableName.toLowerCase();
+            const tableNameID = tableName+'Id';
+            const id = selectedItem[`${tableName}Id`] || selectedItem.id;
+            await fetch(`${apiBaseUrl}/api/delete-${tableName}/${id}`, { method: 'DELETE' });
+            loadTableData(selectedTableName);
         };
 
-        
+        document.getElementById('editButton').onclick = function () {
+            if (!selectedItem) return;
+            const editContainer = document.getElementById('editContainer');
+            editContainer.style.display = 'block';
+            editContainer.innerHTML = '';
+
+            Object.keys(selectedItem).forEach(key => {
+                const div = document.createElement('div');
+                const label = document.createElement('label');
+                label.innerText = key;
+                const input = document.createElement('input');
+                input.value = selectedItem[key];
+                input.dataset.key = key;
+                div.appendChild(label);
+                div.appendChild(input);
+                editContainer.appendChild(div);
+            });
+
+            document.getElementById('saveButton').style.display = 'inline';
+        };
+
         document.getElementById('saveButton').onclick = async function () {
-            if (selectedDocId) {
-                const inputs = document.querySelectorAll('#editContainer input');
-                const updates = {};
-                inputs.forEach(input => {
-                    const key = input.getAttribute('data-key');
-                    updates[key] = input.value; 
-                });
-                const docRef = doc(db, currentCollection, selectedDocId);
-                await updateDoc(docRef, updates);
-                alert('Document updated!');
-                loadCollectionData(currentCollection);
+            if (!selectedItem) return;
+            const updatedData = {};
+            const inputs = document.querySelectorAll('#editContainer input');
+            inputs.forEach(input => {
+                updatedData[input.dataset.key] = input.value;
+            });
+            const tableName = selectedTableName.toLowerCase();
+            const tableNameID = tableName+'Id';
+            const id = selectedItem[`${tableName}Id`] || selectedItem.id;
+
+            const queryString = new URLSearchParams({ ...updatedData, managerId: id }).toString();
+
+            const response = await fetch(`${apiBaseUrl}/api/update-${selectedTableName.toLowerCase()}?${queryString}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+
+            if (response.ok) {
+                loadTableData(selectedTableName);
+            } else {
+                const errorText = await response.text();
+                console.error('Error updating data:', errorText);
             }
         };
 
-        loadCollections();
+        loadTables();
     </script>
 </body>
 
