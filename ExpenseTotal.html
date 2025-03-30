@@ -85,53 +85,49 @@
   </div>
 
   <script>
+    async function fetchQuotationData(quotationId) {
+      try {
+        const response = await fetch(`https://20.2.136.249:3000/api/quotation/${quotationId}`);
+        const responseData = await fetch (`https://20.2.136.249:3000/api/quotationList/${quotationId}`);
+        const data = await response.json();
 
+        const quotationList = document.getElementById('expense-list');
+        const totalAmount = document.getElementById('total-amount');
 
-    const expenses = [
-      { title: 'Lunch', category: 'Food', amount: 15.50 },
-      { title: 'Hotel', category: 'Accommodation', amount: 120.00 },
-      { title: 'Bus Ticket', category: 'Transportation', amount: 2.50 },
-      { title: 'Dinner', category: 'Food', amount: 25.00 }
-    ];
+        quotationList.innerHTML = '';
+        let total = 0;
 
-    function displayExpenses() {
-      const expenseList = document.getElementById('expense-list');
-      const totalAmount = document.getElementById('total-amount');
+        data.forEach(item => {
+          const detailRow = document.createElement('tr');
+          detailRow.innerHTML = `
+            <td>${item.title}</td>
+            <td>${item.category}</td>
+            <td>$${item.amount.toFixed(2)}</td>
+          `;
+          quotationList.appendChild(detailRow);
+          total += item.amount;
+          totalAmount.textContent = total.toFixed(2);
+        });
 
-      expenseList.innerHTML = '';
-      let total = 0;
-
-      expenses.forEach(expense => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${expense.title}</td>
-          <td>${expense.category}</td>
-          <td>$${expense.amount.toFixed(2)}</td>
-        `;
-        expenseList.appendChild(row);
-        total += expense.amount;
-      });
-
-      totalAmount.textContent = total.toFixed(2);
+        document.getElementById('total-amount').textContent = total.toFixed(2);
+      } catch (error) {
+        console.error('Error fetching quotation data:', error);
+      }
     }
-    window.onload = function() {
-    const currentExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
-    let total = 0;
 
-    currentExpenses.forEach(expense => {
-        total += expense.amount;
-        const row = `<tr>
-                        <td>${expense.title}</td>
-                        <td>${expense.category}</td>
-                        <td>${expense.amount}</td>
-                    </tr>`;
-        document.querySelector("table").innerHTML += row;
-    });
+    function getQuotationId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('quotationId');
+    }
 
-    document.getElementById("totalAmount").innerText = total.toFixed(2);
-};
-
-    displayExpenses();
+    window.onload = function () {
+      const quotationId = getQuotationId();
+      if (quotationId) {
+        fetchQuotationData(quotationId);
+      } else {
+        console.error('Quotation ID not found in URL.');
+      }
+    };
   </script>
 </body>
 
