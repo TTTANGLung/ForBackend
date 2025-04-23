@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .report-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007BFF;
+        }
+        button {
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container" id="reportContainer">
+        <h1>Travel Report</h1>
+        <div id="reportContent"></div>
+        <button onclick="window.close()">Close</button>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const itineraryId = urlParams.get('itineraryId');
+
+        async function fetchReport() {
+            try {
+                const itineraryResponse = await fetch(`http://20.2.136.249:5000/api/itinerary/${itineraryId}`);
+                const attractionResponse = await fetch(`http://20.2.136.249:5000/api/attraction?itineraryId=${itineraryId}`);
+                const quotationListResponse = await fetch(`http://20.2.136.249:5000/api/quotationlisttable/${itineraryId}`);
+
+                if (!itineraryResponse.ok || !attractionResponse.ok || !quotationListResponse.ok) {
+                    throw new Error('Network response not ok');
+                }
+
+                const itinerary = await itineraryResponse.json();
+                const attractions = await attractionResponse.json();
+                const quotationList = await quotationListResponse.json();
+
+                const quotationResponse = await fetch(`http://20.2.136.249:5000/api/quotationtable/${quotationList.quotationListId}`);
+
+                if (!quotationResponse.ok) {
+                    throw new Error('Network quotation response not ok');
+                }
+
+                const quotation = await quotationResponse.json();
+
+                displayReport(itinerary, attractions, quotation);
+            } catch (error) {
+                console.error('Error fetching report:', error);
+                document.getElementById('reportContent').innerText = 'Failed to load report.';
+            }
+        }
+
+        function displayReport(itinerary, attractions, quotations) {
+            const attractionList = Array.isArray(attractions) ? attractions : [];
+            const quotationList = Array.isArray(quotations) ? quotations : [];
+
+            document.getElementById('reportContent').innerHTML = `
+                <p><strong>Itinerary ID:</strong> ${itinerary.itineraryId}</p>
+                <p><strong>Destination:</strong> ${itinerary.destination}</p>
+                <p><strong>Date:</strong> ${new Date(itinerary.date).toLocaleString()}</p>
+                <p><strong>Duration:</strong> ${itinerary.duration} days</p>
+                <h2>Attractions</h2>
+                <ul>
+                    ${attractionList.map(attraction => `<li>${attraction.name || attraction}</li>`).join('')}
+                </ul>
+                <h2>Quotation</h2>
+                <ul>
+                    ${quotationList.map(quotation => `<li>${quotation.title}: $${quotation.price}</li>`).join('')}
+                </ul>
+            `;
+        }
+
+        fetchReport();
+    </script>
+</body>
+</html>

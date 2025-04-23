@@ -8,45 +8,51 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
+            background-color: #f4f4f4;
+            color: #333;
             margin: 0;
             display: flex;
         }
 
         .sidebar {
-            width: 200px;
+            width: 250px;
             padding: 20px;
             border-right: 1px solid #ccc;
-            background-color: #fff;
+            background-color: #ffffff;
         }
 
         .sidebar h2 {
             margin-bottom: 20px;
             font-size: 1.5rem;
+            color: #007bff; /* Blue color */
         }
 
-        .table-name {
+        .table-button {
             cursor: pointer;
-            margin: 5px 0;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #f2f2f2;
-            transition: background-color 0.3s;
+            margin: 10px 0;
+            padding: 12px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            background-color: #e7f1ff;
+            color: #007bff;
+            text-align: center;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        .table-name:hover {
-            background-color: #e0e0e0;
+        .table-button:hover {
+            background-color: #007bff;
+            color: white;
         }
 
         .content {
             padding: 20px;
             flex-grow: 1;
+            background-color: #f4f4f4;
         }
 
         .no-data {
             margin-top: 20px;
-            color: #a94442;
+            color: #ff0000; /* Red color */
         }
 
         .button-container {
@@ -56,19 +62,19 @@
         button {
             margin-right: 10px;
             padding: 10px;
-            background-color: #007bff;
+            background-color: #007bff; /* Blue color */
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
         }
 
         button:hover {
-            background-color: #0056b3;
+            background-color: #0056b3; /* Darker blue */
         }
 
         .selected {
-            background-color: #d1ecf1;
+            background-color: #cce5ff; /* Light blue for selected row */
         }
 
         table {
@@ -80,12 +86,13 @@
         th,
         td {
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #ccc; /* Gray border */
             text-align: left;
         }
 
         th {
-            background-color: #f2f2f2;
+            background-color: #007bff; /* Blue color */
+            color: white;
         }
 
         .editable {
@@ -99,7 +106,7 @@
         .editable input {
             padding: 5px;
             border: 1px solid #ccc;
-            border-radius: 4px;
+            border-radius: 5px;
             width: calc(100% - 10px);
         }
     </style>
@@ -129,21 +136,26 @@
     </div>
 
     <script>
-        const apiBaseUrl = 'http://20.2.136.249:3000';
+        const apiBaseUrl = 'http://20.2.136.249:5000';
         let selectedTableName = '';
+        let selectedItem = null;
 
         async function loadTables() {
-            const response = await fetch(`${apiBaseUrl}/api/tables`);
-            const tables = await response.json();
-            const tablesListDiv = document.getElementById('tablesList');
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/tables`);
+                const tables = await response.json();
+                const tablesListDiv = document.getElementById('tablesList');
 
-            tables.forEach(tableName => {
-                const div = document.createElement('div');
-                div.className = 'table-name';
-                div.innerText = tableName;
-                div.onclick = () => loadTableData(tableName);
-                tablesListDiv.appendChild(div);
-            });
+                tables.forEach(tableName => {
+                    const button = document.createElement('div');
+                    button.className = 'table-button';
+                    button.innerText = tableName;
+                    button.onclick = () => loadTableData(tableName);
+                    tablesListDiv.appendChild(button);
+                });
+            } catch (error) {
+                console.error('Error loading tables:', error);
+            }
         }
 
         async function loadTableData(tableName) {
@@ -151,55 +163,58 @@
             const tableTitle = document.getElementById('tableTitle');
             tableTitle.innerText = `Data from ${tableName}`;
 
-            const response = await fetch(`${apiBaseUrl}/api/${tableName.toLowerCase()}`);
-            const data = await response.json();
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/${tableName.toLowerCase()}`);
+                const data = await response.json();
 
-            const tableHeader = document.getElementById('tableHeader');
-            const tableBody = document.getElementById('tableBody');
+                const tableHeader = document.getElementById('tableHeader');
+                const tableBody = document.getElementById('tableBody');
 
-            tableHeader.innerHTML = '';
-            tableBody.innerHTML = '';
+                tableHeader.innerHTML = '';
+                tableBody.innerHTML = '';
 
-            if (data.length === 0) {
-                document.getElementById('noDataMessage').style.display = 'block';
-                document.getElementById('tableData').style.display = 'none';
-                return;
-            }
+                if (data.length === 0) {
+                    document.getElementById('noDataMessage').style.display = 'block';
+                    document.getElementById('tableData').style.display = 'none';
+                    return;
+                }
 
-            Object.keys(data[0]).forEach(key => {
-                const th = document.createElement('th');
-                th.innerText = key;
-                tableHeader.appendChild(th);
-            });
-
-            data.forEach(item => {
-                const row = document.createElement('tr');
-                Object.values(item).forEach(value => {
-                    const td = document.createElement('td');
-                    td.innerText = value;
-                    row.appendChild(td);
+                Object.keys(data[0]).forEach(key => {
+                    const th = document.createElement('th');
+                    th.innerText = key;
+                    tableHeader.appendChild(th);
                 });
-                row.onclick = () => handleRowClick(item);
-                tableBody.appendChild(row);
-            });
 
-            document.getElementById('noDataMessage').style.display = 'none';
-            document.getElementById('tableData').style.display = 'table';
-            document.getElementById('deleteButton').style.display = 'none';
-            document.getElementById('editButton').style.display = 'none';
+                data.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.dataset.id = item[`${tableName.toLowerCase()}Id`];
+                    Object.values(item).forEach(value => {
+                        const td = document.createElement('td');
+                        td.innerText = value;
+                        row.appendChild(td);
+                    });
+                    row.onclick = () => handleRowClick(item);
+                    tableBody.appendChild(row);
+                });
+
+                document.getElementById('noDataMessage').style.display = 'none';
+                document.getElementById('tableData').style.display = 'table';
+                document.getElementById('deleteButton').style.display = 'none';
+                document.getElementById('editButton').style.display = 'none';
+            } catch (error) {
+                console.error('Error loading table data:', error);
+            }
         }
-
-        let selectedItem = null;
 
         function handleRowClick(item) {
             if (selectedItem) {
-                const previousRow = document.querySelector(`tr[data-id="${selectedItem.id}"]`);
+                const previousRow = document.querySelector(`tr[data-id="${selectedItem[`${selectedTableName.toLowerCase()}Id`]}"]`);
                 if (previousRow) {
                     previousRow.classList.remove('selected');
                 }
             }
             selectedItem = item;
-            const currentRow = document.querySelector(`tr[data-id="${selectedItem.id}"]`);
+            const currentRow = document.querySelector(`tr[data-id="${selectedItem[`${selectedTableName.toLowerCase()}Id`]}"]`);
             if (currentRow) {
                 currentRow.classList.add('selected');
             }
@@ -209,10 +224,8 @@
 
         document.getElementById('deleteButton').onclick = async function () {
             if (!selectedItem) return;
-            const tableName = selectedTableName.toLowerCase();
-            const tableNameID = tableName+'Id';
-            const id = selectedItem[`${tableName}Id`] || selectedItem.id;
-            await fetch(`${apiBaseUrl}/api/delete-${tableName}/${id}`, { method: 'DELETE' });
+            const id = selectedItem[`${selectedTableName.toLowerCase()}Id`];
+            await fetch(`${apiBaseUrl}/api/delete-${selectedTableName.toLowerCase()}/${id}`, { method: 'DELETE' });
             loadTableData(selectedTableName);
         };
 
@@ -244,17 +257,14 @@
             inputs.forEach(input => {
                 updatedData[input.dataset.key] = input.value;
             });
-            const tableName = selectedTableName.toLowerCase();
-            const tableNameID = tableName+'Id';
-            const id = selectedItem[`${tableName}Id`] || selectedItem.id;
+            const id = selectedItem[`${selectedTableName.toLowerCase()}Id`];
 
-            const queryString = new URLSearchParams({ ...updatedData, managerId: id }).toString();
-
-            const response = await fetch(`${apiBaseUrl}/api/update-${selectedTableName.toLowerCase()}?${queryString}`, {
+            const response = await fetch(`${apiBaseUrl}/api/update-${selectedTableName.toLowerCase()}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ...updatedData, [`${selectedTableName.toLowerCase()}Id`]: id })
             });
 
             if (response.ok) {

@@ -124,8 +124,12 @@
             };
 
             try {
-                const response = await fetch(`http://20.2.136.249:3000/api/insert-Location?latitude=${latitude}&longitude=${longitude}&name=${encodeURIComponent(name)}&description=${encodeURIComponent(description)}`, {
-                    method: 'GET',
+                const response = await fetch('http://20.2.136.249:5000/api/insert-location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(locationData)
                 });
 
                 if (response.ok) {

@@ -96,27 +96,53 @@
   </div>
 
   <script>
-    document.getElementById('expense-form').onsubmit = function (event) {
-      event.preventDefault();
+    const quotationListId = new URLSearchParams(window.location.search).get('quotationListId');
+    const itineraryId = new URLSearchParams(window.location.search).get('itineraryId');
 
-      const expenseTitle = document.getElementById("expense-title").value;
-      const amount = "$"+parseFloat(document.getElementById("expense-amount").value);
-      const expenseType = document.getElementById("expense-type").value;
-      const currency = document.getElementById("currency").value;
-      currentExpenses.push({ title: expenseTitle, amount: amount, category: expenseType, currency: currency });
-      localStorage.setItem("expenses", JSON.stringify(currentExpenses));
+document.getElementById('expense-form').onsubmit = async function (event) {
+  event.preventDefault();
 
+  const expenseTitle = document.getElementById("expense-title").value;
+  const amount = parseFloat(document.getElementById("expense-amount").value);
+  const expenseType = document.getElementById("expense-type").value;
+  const currency = document.getElementById("currency").value;
+
+  const expenseData = {
+    title: expenseTitle,
+    price: amount,
+    category: expenseType,
+    currency: currency,
+    quotationListId: quotationListId
+  };
+
+  try {
+    const response = await fetch('http://20.2.136.249:5000/api/insert-quotationtable', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(expenseData)
+    });
+
+    if (response.ok) {
       alert('Expense has been saved!');
-
       this.reset();
-      location.href = 'ExpenseTotal.html';
-    };
-
-    function cancel() {
-      if (confirm('Are you sure you want to cancel?')) {
-        document.getElementById('expense-form').reset();
-      }
+      location.href = `quotation-page?itineraryId=${itineraryId}`;
+    } else {
+      console.error('Failed to save expense:', response.statusText);
+      alert('Failed to save expense. Please try again.');
     }
+  } catch (error) {
+    console.error('Error saving expense:', error);
+    alert('Error saving expense. Please check your network connection.');
+  }
+};
+
+function cancel() {
+  if (confirm('Are you sure you want to cancel?')) {
+    document.getElementById('expense-form').reset();
+  }
+}
   </script>
 </body>
 
