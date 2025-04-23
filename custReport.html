@@ -55,7 +55,7 @@
                 const attractions = await attractionResponse.json();
                 const quotationList = await quotationListResponse.json();
 
-                const quotationResponse = await fetch(`http://20.2.136.249:5000/api/quotationtable/${quotationList.quotationListId}`);
+                const quotationResponse = await fetch(`http://20.2.136.249:5000/api/quotationtable/${quotationList[0].quotationListId}`);
 
                 if (!quotationResponse.ok) {
                     throw new Error('Network quotation response not ok');

@@ -13,20 +13,17 @@
             margin: 0;
             display: flex;
         }
-
         .sidebar {
             width: 250px;
             padding: 20px;
             border-right: 1px solid #ccc;
             background-color: #ffffff;
         }
-
         .sidebar h2 {
             margin-bottom: 20px;
             font-size: 1.5rem;
-            color: #007bff; /* Blue color */
+            color: #007bff;
         }
-
         .table-button {
             cursor: pointer;
             margin: 10px 0;
@@ -38,71 +35,58 @@
             text-align: center;
             transition: background-color 0.3s, color 0.3s;
         }
-
         .table-button:hover {
             background-color: #007bff;
             color: white;
         }
-
         .content {
             padding: 20px;
             flex-grow: 1;
             background-color: #f4f4f4;
         }
-
         .no-data {
             margin-top: 20px;
-            color: #ff0000; /* Red color */
+            color: #ff0000;
         }
-
         .button-container {
             margin-bottom: 20px;
         }
-
         button {
             margin-right: 10px;
             padding: 10px;
-            background-color: #007bff; /* Blue color */
+            background-color: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
-
         button:hover {
-            background-color: #0056b3; /* Darker blue */
+            background-color: #0056b3;
         }
-
         .selected {
-            background-color: #cce5ff; /* Light blue for selected row */
+            background-color: #cce5ff;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-
         th,
         td {
             padding: 10px;
-            border: 1px solid #ccc; /* Gray border */
+            border: 1px solid #ccc;
             text-align: left;
         }
-
         th {
-            background-color: #007bff; /* Blue color */
+            background-color: #007bff;
             color: white;
         }
-
         .editable {
             margin-top: 20px;
         }
-
         .editable div {
             margin-bottom: 10px;
         }
-
         .editable input {
             padding: 5px;
             border: 1px solid #ccc;
@@ -130,7 +114,6 @@
             <tbody id="tableBody"></tbody>
         </table>
         <div class="no-data" id="noDataMessage" style="display:none;">No data to display.</div>
-
         <div id="editContainer" class="editable" style="display:none;"></div>
         <button id="saveButton" style="display:none;">Save Changes</button>
     </div>
