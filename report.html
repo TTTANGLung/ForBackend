@@ -102,7 +102,18 @@
         <select id="countryFilter" onchange="filterTrips()">
             <option value="all">All</option>
         </select>
+        <label for="sortSelect">Sort by: </label>
+        <select id="sortSelect" onchange="sortTrips()">
+            <option value="id">ID</option>
+            <option value="date">Date</option>
+            <option value="duration">Duration</option>
+        </select>
     </div>
+    
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search by ID or Destination" oninput="searchTrips()">
+    </div>
+    
     <table>
         <thead>
             <tr>
@@ -172,6 +183,30 @@
         function filterTrips() {
             const filterValue = document.getElementById('countryFilter').value;
             const filteredItineraries = filterValue === 'all' ? itineraries : itineraries.filter(itinerary => itinerary.destination === filterValue);
+            displayItineraries(filteredItineraries);
+        }
+
+        function sortTrips() {
+            const sortValue = document.getElementById('sortSelect').value;
+            const sortedItineraries = [...itineraries];
+            sortedItineraries.sort((a, b) => {
+                if (sortValue === 'id') {
+                    return a.itineraryId - b.itineraryId;
+                } else if (sortValue === 'date') {
+                    return new Date(a.date) - new Date(b.date);
+                } else if (sortValue === 'duration') {
+                    return a.duration - b.duration;
+                }
+            });
+            displayItineraries(sortedItineraries);
+        }
+
+        function searchTrips() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+            const filteredItineraries = itineraries.filter(itinerary => 
+                itinerary.itineraryId.toString().toLowerCase().includes(searchValue) || 
+                itinerary.destination.toLowerCase().includes(searchValue)
+            );
             displayItineraries(filteredItineraries);
         }
 

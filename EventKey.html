@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key Generation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generate New Key</h1>
+    <label for="location-input">Location ID:</label>
+    <input type="text" id="location-input" placeholder="Enter location ID" required>
+    <button id="generate-key">Generate Key</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('generate-key').addEventListener('click', function() {
+            const locationId = document.getElementById('location-input').value;
+
+            if (!locationId) {
+                document.getElementById('result').innerHTML = '<p style="color: red;">Please enter a location ID.</p>';
+                return;
+            }
+
+            const eventData = {
+                location_id: locationId,
+                enable: true
+            };
+
+            fetch('http://20.2.136.249/api/insert-keytable', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(eventData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                    document.getElementById('result').innerHTML = `<p>Key ID: ${data.id}, Key: ${data.key}</p>`;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = `<p style="color: red;">An error occurred: ${error}</p>`;
+            });
+        });
+    </script>
+</body>
+</html>

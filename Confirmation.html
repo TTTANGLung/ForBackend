@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Confirmation Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        #eventList {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .eventItem {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .details {
+            display: none;
+            margin-top: 10px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="eventList">
+        <h2>Confirm Events</h2>
+        <div id="eventsContainer"></div>
+    </div>
+
+    <script>
+        const eventsContainer = document.getElementById('eventsContainer');
+
+        async function fetchEvents() {
+            try {
+                const response = await fetch('http://your_api_endpoint/api/events?enable=false'); // fetch api to get event
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const events = await response.json();
+                renderEvents(events);
+            } catch (error) {
+                console.error('Error fetching events:', error);
+                eventsContainer.innerHTML = '<p>Error loading events.</p>';
+            }
+        }
+
+        function renderEvents(events) {
+            events.forEach(event => {
+                const eventItem = document.createElement('div');
+                eventItem.className = 'eventItem';
+
+                const title = document.createElement('h4');
+                title.textContent = event.title;
+
+                const details = document.createElement('div');
+                details.className = 'details';
+                details.textContent = event.content;
+
+                const toggleDetailsButton = document.createElement('button');
+                toggleDetailsButton.textContent = 'View Details';
+                toggleDetailsButton.onclick = () => {
+                    details.style.display = details.style.display === 'block' ? 'none' : 'block';
+                };
+
+                const confirmButton = document.createElement('button');
+                confirmButton.textContent = 'Confirm Event';
+                confirmButton.onclick = () => confirmEvent(event.id);
+
+                eventItem.appendChild(title);
+                eventItem.appendChild(toggleDetailsButton);
+                eventItem.appendChild(confirmButton);
+                eventItem.appendChild(details);
+                eventsContainer.appendChild(eventItem);
+            });
+        }
+
+        // Function to confirm an event
+        async function confirmEvent(eventId) {
+            try {
+                const response = await fetch(`http://your_api_endpoint/api/events/${eventId}/confirm`, {
+                    method: 'PUT', // Assuming PUT is used to update the event
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    alert(`Event ID ${eventId} confirmed!`);
+                    // Optionally, refresh the event list
+                    eventsContainer.innerHTML = '';
+                    fetchEvents();
+                } else {
+                    alert('Failed to confirm event.');
+                }
+            } catch (error) {
+                console.error('Error confirming event:', error);
+            }
+        }
+
+        // Initial fetch of events
+        fetchEvents();
+    </script>
+</body>
+
+</html>

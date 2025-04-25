@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .summary-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007BFF;
+        }
+        button {
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="summary-container">
+        <h1>Summary Report</h1>
+        <div id="summaryReport"></div>
+        <button onclick="window.close()">Close</button>
+    </div>
+    <script>
+        async function fetchSummary() {
+            try {
+                const response = await fetch(`http://20.2.136.249:5000/api/itinerary`);
+                const itineraries = await response.json();
+                const summary = {};
+
+                itineraries.forEach(itinerary => {
+                    const country = itinerary.destination;
+                    const totalCost = itinerary.totalCost || 0;
+
+                    if (!summary[country]) {
+                        summary[country] = { count: 0, total: 0 };
+                    }
+                    summary[country].count++;
+                    summary[country].total += totalCost;
+                });
+
+                displaySummaryReport(summary);
+            } catch (error) {
+                console.error('Error fetching summary:', error);
+                document.getElementById('summaryReport').innerText = 'Failed to load summary report.';
+            }
+        }
+
+        function displaySummaryReport(summary) {
+            const summaryReportDiv = document.getElementById('summaryReport');
+            summaryReportDiv.innerHTML = '<h2>Summary</h2>';
+            
+            let totalItineraries = 0;
+            for (const country in summary) {
+                totalItineraries += summary[country].count;
+                summaryReportDiv.innerHTML += `
+                    <p><strong>${country}:</strong> ${summary[country].count} itineraries, Total Bill: $${summary[country].total}</p>
+                `;
+            }
+            
+            summaryReportDiv.innerHTML += `<p><strong>Total Itineraries:</strong> ${totalItineraries}</p>`;
+        }
+
+        fetchSummary();
+    </script>
+</body>
+</html>

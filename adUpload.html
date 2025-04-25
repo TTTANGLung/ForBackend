@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,6 +25,7 @@
 
         input[type="text"],
         input[type="file"],
+        input[type="datetime-local"],
         textarea {
             width: 95%;
             padding: 10px;
@@ -76,6 +78,7 @@
         <form id="adForm">
             <input type="text" id="title" placeholder="Ad title" required>
             <textarea id="content" rows="4" placeholder="Ad content"></textarea>
+            <input type="datetime-local" id="timelimit" placeholder="Time limit" required>
             <input type="text" id="token" placeholder="Enter key" required>
             <input type="button" id="upload_widget_opener" value="Upload Image" />
             <button type="submit">Upload ad</button>
@@ -86,35 +89,73 @@
             <h4 id="previewTitle"></h4>
             <img id="uploaded_image" src="" alt="Uploaded Image" />
             <p id="previewContent"></p>
+            <p id="testview"></p>
         </div>
     </div>
 
     <script>
+        let imageUrl = '';
+        const eventData = {
+                title: '',
+                content: '',
+                img_url: '',
+                location_id: '',
+                country: '',
+                enable: false,
+                time_limit: ''
+            };
         document.getElementById('adForm').addEventListener('submit', function (event) {
             event.preventDefault();
 
-            const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
-            const token = document.getElementById('token').value;
-
-            document.getElementById('previewTitle').textContent = title;
-            if (content) {
-                document.getElementById('previewContent').textContent = content;
-            } else {
-                document.getElementById('previewContent').textContent = '';
+            if (!imageUrl) {
+                alert('Please upload an image before submitting.');
+                return;
             }
 
-            document.getElementById('preview').style.display = 'block';
+            //fetch api to check key table have this key and return this key location then change {enable:false};
+
+            eventData.title = document.getElementById('title').value;
+            eventData.content = document.getElementById('content').value;
+            eventData.img_url = imageUrl;
+            eventData.location_id = document.getElementById('location').value;
+            eventData.country = document.getElementById('country').value;
+            eventData.time_limit = document.getElementById('timelimit').value;
+
+            fetch('http://20./api/events', { // fetch api to insert event 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(eventData),
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Advertisement submitted successfully!');
+                        document.getElementById('adForm').reset();
+                        document.getElementById('uploaded_image').style.display = 'none';
+                        document.getElementById('preview').style.display = 'none';
+                        imageUrl = '';
+                    } else {
+                        alert('Failed to submit advertisement.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error uploading advertisement:', error);
+                });
         });
+
         var myWidget = cloudinary.createUploadWidget({
             cloudName: 'dxzdaacuv',
             uploadPreset: 'webUpload'
         }, (error, result) => {
             if (!error && result && result.event === "success") {
-                console.log('Done! Here is the image info: ', result.info);
-                const imageUrl = result.info.secure_url;
+                console.log('Done! Here is the image info: ', result.info,eventData);
+                imageUrl = result.info.secure_url;
                 document.getElementById('uploaded_image').src = imageUrl;
                 document.getElementById('uploaded_image').style.display = 'block';
+                document.getElementById('previewTitle').textContent = document.getElementById('title').value;
+                document.getElementById('previewContent').textContent = document.getElementById('content').value;
+                document.getElementById('preview').style.display = 'block';
             }
         });
         document.getElementById("upload_widget_opener").addEventListener("click", function () {
