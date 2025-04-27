@@ -3,33 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Key Generation</title>
+    <title>Event and Key Management</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        button {
-            padding: 10px 15px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        #result {
+        table {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 20px;
         }
-        input[type="text"] {
-            padding: 10px;
-            font-size: 16px;
-            margin-right: 10px;
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+            margin: 0 5px;
         }
     </style>
 </head>
 <body>
-    <h1>Generate New Key</h1>
+    <h1>Management Event and Key</h1>
     <label for="location-input">Location ID:</label>
     <input type="text" id="location-input" placeholder="Enter location ID" required>
     <button id="generate-key">Generate Key</button>
     <div id="result"></div>
+
+    <div class="list" id="event-list">
+        <h2>Events</h2>
+        <ul id="events"></ul>
+    </div>
+    <div class="list" id="key-list">
+        <h2>Keys</h2>
+        <ul id="keys"></ul>
+    </div>
 
     <script>
         document.getElementById('generate-key').addEventListener('click', function() {
@@ -45,7 +59,7 @@
                 enable: true
             };
 
-            fetch('http://20.2.136.249/api/insert-keytable', {
+            fetch('http://20.2.136.249:5000/api/insert-keytable', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -57,13 +71,67 @@
                 if (data.error) {
                     document.getElementById('result').innerHTML = `<p style="color: red;">${data.error}</p>`;
                 } else {
-                    document.getElementById('result').innerHTML = `<p>Key ID: ${data.id}, Key: ${data.key}</p>`;
+                    document.getElementById('result').innerHTML = `<p>Key ID: ${data.Key_id}, Key: ${data.key}</p>`;
+                    fetchKeys();
                 }
             })
             .catch(error => {
                 document.getElementById('result').innerHTML = `<p style="color: red;">An error occurred: ${error}</p>`;
             });
         });
+
+        function fetchKeys() {
+            fetch('http://20.2.136.249:5000/api/eventkey')
+            .then(response => response.json())
+                .then(data => {
+                    const keysList = document.getElementById('keys');
+                    keysList.innerHTML = '';
+                    data.forEach(key => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${key.Key_id}</td>
+                            <td>${key.keycontent}</td>
+                            <td>
+                                <button onclick="deleteKey('${key.Key_id}')">Delete</button>
+                                <button onclick="toggleKey('${key.Key_id}', ${key.enable})">${key.enable ? 'Disable' : 'Enable'}</button>
+                            </td>
+                        `;
+                        keysList.appendChild(tr);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching keys:', error);
+                });
+        }
+
+        function fetchEvents() {
+            fetch('http://20.2.136.249:5000/api/event')
+                .then(response => response.json())
+                .then(data => {
+                    const eventsList = document.getElementById('events');
+                    eventsList.innerHTML = '';
+                    data.forEach(event => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${event.event_id}</td>
+                            <td>${event.title}</td>
+                            <td>${event.content}</td>
+                            <td>${event.enable ? 'Enabled' : 'Disabled'}</td>
+                            <td>
+                                <button onclick="deleteEvent('${event.event_id}')">Delete</button>
+                                <button onclick="toggleEvent('${event.event_id}', ${event.enable})">${event.enable ? 'Disable' : 'Enable'}</button>
+                            </td>
+                        `;
+                        eventsList.appendChild(tr);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching events:', error);
+                });
+        }
+
+        fetchKeys();
+        fetchEvents();
     </script>
 </body>
 </html>

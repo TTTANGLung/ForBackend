@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
-    <title>Ad upload page</title>
+    <title>Ad Upload Page</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -32,7 +31,6 @@
             margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 4px;
-            max-width: 95%;
         }
 
         #uploaded_image {
@@ -77,33 +75,53 @@
         <h2>Upload Advertisement</h2>
         <form id="adForm">
             <input type="text" id="title" placeholder="Ad title" required>
-            <textarea id="content" rows="4" placeholder="Ad content"></textarea>
-            <input type="datetime-local" id="timelimit" placeholder="Time limit" required>
-            <input type="text" id="token" placeholder="Enter key" required>
+            <textarea id="content" rows="4" placeholder="Ad content" required></textarea>
+            <select id="country" required>
+                <option value="">Select a country</option>
+            </select>
+            <input type="datetime-local" id="timelimit" required>
+            <input type="text" id="key" placeholder="Enter key" required>
             <input type="button" id="upload_widget_opener" value="Upload Image" />
             <button type="submit">Upload ad</button>
         </form>
 
         <div id="preview">
-            <h3>Advertisement preview</h3>
+            <h3>Advertisement Preview</h3>
             <h4 id="previewTitle"></h4>
             <img id="uploaded_image" src="" alt="Uploaded Image" />
             <p id="previewContent"></p>
-            <p id="testview"></p>
         </div>
     </div>
 
     <script>
+        const cors = require('cors');
+        const express = require('express');
+        const app = express();
+        app.use(cors());
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch("https://restcountries.com/v3.1/all")
+                .then(response => response.json())
+                .then(data => {
+                    const countrySelect = document.getElementById('country');
+                    data.forEach(country => {
+                        const option = document.createElement('option');
+                        option.value = country.name.common;
+                        option.textContent = country.name.common;
+                        countrySelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching country data:', error));
+        });
+
         let imageUrl = '';
         const eventData = {
-                title: '',
-                content: '',
-                img_url: '',
-                location_id: '',
-                country: '',
-                enable: false,
-                time_limit: ''
-            };
+            title: '',
+            content: '',
+            img_url: '',
+            country: '',
+            time_limit: ''
+        };
+
         document.getElementById('adForm').addEventListener('submit', function (event) {
             event.preventDefault();
 
@@ -112,24 +130,39 @@
                 return;
             }
 
-            //fetch api to check key table have this key and return this key location then change {enable:false};
-
             eventData.title = document.getElementById('title').value;
             eventData.content = document.getElementById('content').value;
             eventData.img_url = imageUrl;
-            eventData.location_id = document.getElementById('location').value;
             eventData.country = document.getElementById('country').value;
             eventData.time_limit = document.getElementById('timelimit').value;
 
-            fetch('http://20./api/events', { // fetch api to insert event 
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(eventData),
-            })
+            const keyToCheck = document.getElementById('key').value;
+
+            fetch('http://20.2.136.249:5000/api/eventkey')
                 .then(response => {
-                    if (response.ok) {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const keyExists = data.some(event => event.keycontent === keyToCheck);
+
+                    if (keyExists) {
+                        return fetch('http://20.2.136.249:5000/api/insert-eventtable', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(eventData),
+                        });
+                    } else {
+                        alert('Key not found. Please enter a valid key.');
+                        throw new Error('Key not found');
+                    }
+                })
+                .then(response => {
+                    if (response && response.ok) {
                         alert('Advertisement submitted successfully!');
                         document.getElementById('adForm').reset();
                         document.getElementById('uploaded_image').style.display = 'none';
@@ -140,7 +173,8 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error uploading advertisement:', error);
+                    console.error('Error:', error);
+                    alert('An error occurred: ' + error.message);
                 });
         });
 
@@ -149,7 +183,6 @@
             uploadPreset: 'webUpload'
         }, (error, result) => {
             if (!error && result && result.event === "success") {
-                console.log('Done! Here is the image info: ', result.info,eventData);
                 imageUrl = result.info.secure_url;
                 document.getElementById('uploaded_image').src = imageUrl;
                 document.getElementById('uploaded_image').style.display = 'block';
@@ -158,6 +191,7 @@
                 document.getElementById('preview').style.display = 'block';
             }
         });
+
         document.getElementById("upload_widget_opener").addEventListener("click", function () {
             myWidget.open();
         }, false);
