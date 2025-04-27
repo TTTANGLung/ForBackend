@@ -57,6 +57,19 @@
       font-size: 1.2rem;
       text-align: right;
     }
+
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #c82333;
+    }
   </style>
 </head>
 
@@ -73,6 +86,7 @@
           <th>Expense Title</th>
           <th>Category</th>
           <th>Amount</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody id="expense-list">
@@ -127,7 +141,7 @@
           const quotationResponse = await fetch(`http://20.2.136.249:5000/api/quotationtable/${quotationListId}`);
           if (!quotationResponse.ok) {
             if (quotationResponse.status === 404) {
-              quotationList.innerHTML = '<tr><td colspan="3">Have not record</td></tr>';
+              quotationList.innerHTML = '<tr><td colspan="4">Have not record</td></tr>';
               return;
             } else {
               console.error('Network response was not ok', quotationResponse.status);
@@ -136,14 +150,17 @@
           }
           let quotationdata = await quotationResponse.json();
           if (quotationdata.length === 0) {
-            quotationList.innerHTML = '<tr><td colspan="3">Have not record</td></tr>';
+            quotationList.innerHTML = '<tr><td colspan="4">Have not record</td></tr>';
             return;
           }
 
           quotationdata.forEach(item => {
             const detailRow = document.createElement('tr');
             const price = parseFloat(item.price) || 0;
-            detailRow.innerHTML = `<td>${item.title || 'N/A'}</td><td>${item.category || 'N/A'}</td><td>$${price.toFixed(2)}</td>`;
+            detailRow.innerHTML = `<td>${item.title || 'N/A'}</td>
+                                  <td>${item.category || 'N/A'}</td>
+                                  <td>$${price.toFixed(2)}</td>
+                                  <td><button class="delete-btn" onclick="deleteQuotation('${item.quotationId}')">Delete</button></td>`;
             quotationList.appendChild(detailRow);
             total += price;
           });
@@ -151,6 +168,23 @@
         totalAmount.textContent = total.toFixed(2);
       } catch (error) {
         console.error('Error fetching quotation data:', error);
+      }
+    }
+
+    async function deleteQuotation(quotationId) {
+      try {
+        const response = await fetch(`http://20.2.136.249:5000/api/delete-quotation/${quotationId}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          console.log(`Deleted quotation with ID: ${quotationId}`);
+          const itineraryId = getItineraryId();
+          fetchQuotationData(itineraryId);
+        } else {
+          console.error('Failed to delete quotation:', response.status);
+        }
+      } catch (error) {
+        console.error('Error deleting quotation:', error);
       }
     }
 

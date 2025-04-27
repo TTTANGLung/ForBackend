@@ -13,17 +13,20 @@
             margin: 0;
             display: flex;
         }
+
         .sidebar {
             width: 250px;
             padding: 20px;
             border-right: 1px solid #ccc;
             background-color: #ffffff;
         }
+
         .sidebar h2 {
             margin-bottom: 20px;
             font-size: 1.5rem;
             color: #007bff;
         }
+
         .table-button {
             cursor: pointer;
             margin: 10px 0;
@@ -35,22 +38,27 @@
             text-align: center;
             transition: background-color 0.3s, color 0.3s;
         }
+
         .table-button:hover {
             background-color: #007bff;
             color: white;
         }
+
         .content {
             padding: 20px;
             flex-grow: 1;
             background-color: #f4f4f4;
         }
+
         .no-data {
             margin-top: 20px;
             color: #ff0000;
         }
+
         .button-container {
             margin-bottom: 20px;
         }
+
         button {
             margin-right: 10px;
             padding: 10px;
@@ -60,33 +68,41 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #0056b3;
         }
+
         .selected {
             background-color: #cce5ff;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
+
         th,
         td {
             padding: 10px;
             border: 1px solid #ccc;
             text-align: left;
         }
+
         th {
             background-color: #007bff;
             color: white;
         }
+
         .editable {
             margin-top: 20px;
         }
+
         .editable div {
             margin-bottom: 10px;
         }
+
         .editable input {
             padding: 5px;
             border: 1px solid #ccc;
@@ -142,6 +158,9 @@
         }
 
         async function loadTableData(tableName) {
+            document.getElementById('editContainer').style.display = 'none';
+            document.getElementById('saveButton').style.display = 'none';
+
             selectedTableName = tableName;
             const tableTitle = document.getElementById('tableTitle');
             tableTitle.innerText = `Data from ${tableName}`;
@@ -223,7 +242,18 @@
                 const label = document.createElement('label');
                 label.innerText = key;
                 const input = document.createElement('input');
-                input.value = selectedItem[key];
+
+                if (key.toLowerCase().includes('time') || key.toLowerCase().includes('date')) {
+                    input.type = 'datetime-local';
+
+                    if (selectedItem[key]) {
+                        input.value = selectedItem[key].replace(' ', 'T').slice(0, 16);
+                    }
+                } else {
+                    input.type = 'text';
+                    input.value = selectedItem[key];
+                }
+
                 input.dataset.key = key;
                 div.appendChild(label);
                 div.appendChild(input);
@@ -238,7 +268,11 @@
             const updatedData = {};
             const inputs = document.querySelectorAll('#editContainer input');
             inputs.forEach(input => {
-                updatedData[input.dataset.key] = input.value;
+                let value = input.value;
+                if (input.type === 'datetime-local' && value) {
+                    value = value.replace('T', ' ') + ':00';
+                }
+                updatedData[input.dataset.key] = value;
             });
             const id = selectedItem[`${selectedTableName.toLowerCase()}Id`];
 
@@ -251,6 +285,8 @@
             });
 
             if (response.ok) {
+                document.getElementById('editContainer').style.display = 'none';
+                document.getElementById('saveButton').style.display = 'none';
                 loadTableData(selectedTableName);
             } else {
                 const errorText = await response.text();
